@@ -1,0 +1,6 @@
+{
+  "__MODULE_ID__.Title": "__TITLE__",
+  "__MODULE_ID__.Open": "Open",
+  "__MODULE_ID__.SettingGmOnly": "GM only",
+  "__MODULE_ID__.SettingGmOnlyHint": "If disabled, players who own an item can also use this module on it."
+}

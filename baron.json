@@ -1,0 +1,9 @@
+{
+  "mode": "public",
+  "devChannel": true,
+  "i18nPrefix": "__MODULE_ID__",
+  "langParity": "error",
+  "persisted": [
+    "__MODULE_ID__"
+  ]
+}

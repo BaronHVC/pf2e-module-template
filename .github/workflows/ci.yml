@@ -1,0 +1,24 @@
+name: CI
+
+# Revisa el modulo en cada push a una rama y en cada pull request. Las
+# etiquetas no pasan por aqui: el workflow de release corre el mismo check
+# antes de publicar.
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+  workflow_dispatch:
+
+# El check solo lee el repo.
+permissions:
+  contents: read
+
+jobs:
+  check:
+    # La plantilla misma no es un modulo (sus placeholders harian fallar el
+    # check): solo corre en los repos creados a partir de ella.
+    if: github.repository != 'BaronHVC/pf2e-module-template'
+    # El pin es el commit de baron-core.lock.json. No se edita a mano: sync-core
+    # lo reescribe, y check-module falla si no coincide con el lock.
+    uses: BaronHVC/pf2e-baron-core/.github/workflows/module-check.yml@0000000000000000000000000000000000000000

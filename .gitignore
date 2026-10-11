@@ -1,0 +1,23 @@
+# Artefactos de release (se suben a GitHub Releases, no al repo)
+build/
+*.zip
+
+# Copia de pf2e-baron-core que el workflow reutilizable baja para el check
+.baron-core/
+
+# Basura del SO
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editores
+.vscode/
+.idea/
+*.swp
+
+# Tooling local
+node_modules/
+.code-review-graph/
+
+# Informes de counselors (revisiones de agentes, no son parte del modulo)
+agents/

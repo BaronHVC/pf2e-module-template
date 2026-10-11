@@ -1,0 +1,4 @@
+# LF en todas partes, tambien en Windows con core.autocrlf=true: el hash del
+# lock de baron-core, la copia vendorizada y los ZIPs tienen que salir iguales
+# en tu maquina y en CI.
+* text=auto eol=lf

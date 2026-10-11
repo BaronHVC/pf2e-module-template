@@ -1,0 +1,21 @@
+name: Release
+
+# Se dispara solo cuando publicas una etiqueta tipo v0.2.0 (estable) o
+# v0.2.0-rc.1 (prerelease + canal de pruebas).
+on:
+  push:
+    tags:
+      - "v*"
+
+# Necesario para que el workflow reutilizable pueda crear el release: un
+# workflow llamado solo puede tener los permisos que le da quien lo llama.
+permissions:
+  contents: write
+
+jobs:
+  release:
+    # La plantilla misma nunca publica: solo los repos creados a partir de ella.
+    if: github.repository != 'BaronHVC/pf2e-module-template'
+    # El pin es el commit de baron-core.lock.json. No se edita a mano: sync-core
+    # lo reescribe, y check-module falla si no coincide con el lock.
+    uses: BaronHVC/pf2e-baron-core/.github/workflows/module-release.yml@0000000000000000000000000000000000000000

@@ -1,0 +1,65 @@
+name: "Reporte de error / Bug report"
+description: "Algo no funciona en __TITLE__ / Something is broken in __TITLE__"
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: "Gracias por avisar. Con las versiones exactas y los pasos casi siempre se puede reproducir. / Thanks for reporting: exact versions and steps make it reproducible."
+  - type: input
+    id: foundry
+    attributes:
+      label: "Versión de Foundry VTT / Foundry VTT version"
+      description: "Configuración → pie de la barra lateral, o la pantalla de inicio / Settings sidebar footer, or the setup screen."
+      placeholder: "14.364"
+    validations:
+      required: true
+  - type: input
+    id: pf2e
+    attributes:
+      label: "Versión del sistema PF2e / PF2e system version"
+      placeholder: "7.5.2"
+    validations:
+      required: true
+  - type: input
+    id: module
+    attributes:
+      label: "Versión de __TITLE__ / __TITLE__ version"
+      description: "Add-on Modules → __MODULE_ID__."
+      placeholder: "0.2.0"
+    validations:
+      required: true
+  - type: input
+    id: core
+    attributes:
+      label: "Versión de baron-core / baron-core version"
+      description: "Viene en las notas del release y en el CHANGELOG del módulo; si no la sabes, déjalo vacío. / Listed in the release notes and CHANGELOG; leave empty if unsure."
+      placeholder: "1.0.0-rc.1"
+    validations:
+      required: false
+  - type: dropdown
+    id: host
+    attributes:
+      label: "Dónde corre Foundry / Hosting"
+      options:
+        - "Self-hosted (mi PC o servidor propio / own PC or server)"
+        - "The Forge"
+        - "Molten Hosting"
+        - "Otro / Other"
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: "Pasos para reproducirlo / Steps to reproduce"
+      description: "Qué hiciste, qué esperabas y qué pasó. / What you did, what you expected, what happened."
+      placeholder: "1. Abrir la ficha de un arma...\n2. ...\n3. ..."
+    validations:
+      required: true
+  - type: textarea
+    id: console
+    attributes:
+      label: "Errores de la consola / Console errors"
+      description: "F12 → Console. Pega los errores en rojo, sobre todo los que mencionan __MODULE_ID__. / Paste the red errors, especially those mentioning __MODULE_ID__."
+      render: text
+    validations:
+      required: false

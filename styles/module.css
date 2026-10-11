@@ -1,0 +1,50 @@
+/*
+ * Every rule here is scoped. Windows of this module carry the root class
+ * __PREFIX__-app (add it through DEFAULT_OPTIONS.classes of each
+ * ApplicationV2), and anything injected into someone else's UI carries an
+ * explicit __PREFIX__-* class. Global Foundry or PF2e selectors are never
+ * restyled: the look of other windows must not depend on this module.
+ *
+ * Colours come only from Foundry's v13+ theme variables, which flip between
+ * the light and dark themes on their own. Custom properties are prefixed and
+ * declared on the root class, never on :root, where any other module's
+ * stylesheet could collide with them.
+ */
+
+.__PREFIX__-app {
+  --__PREFIX__-gap: 0.5rem;
+  color: var(--color-text-primary);
+}
+
+.__PREFIX__-app .__PREFIX__-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--__PREFIX__-gap);
+  padding: var(--__PREFIX__-gap);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+}
+
+.__PREFIX__-app .__PREFIX__-heading {
+  margin: 0;
+  color: var(--color-text-emphatic);
+}
+
+.__PREFIX__-app .__PREFIX__-hint {
+  font-size: 0.85em;
+  color: var(--color-text-subtle);
+}
+
+/* Header button added by injectSheetButton. baron-core dedupes it by its
+   data-baron-btn key, never by this class, so the class is free for styling. */
+.__PREFIX__-open {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8em;
+  margin-right: 6px;
+}
+
+.__PREFIX__-open span {
+  display: inline;
+}
