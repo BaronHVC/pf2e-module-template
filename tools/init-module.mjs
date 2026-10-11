@@ -418,7 +418,13 @@ if (mode === "protected") {
   );
 }
 if (opts.requires !== undefined) {
-  lines.push(`Requiere ${opts.requires}:`, `  - module.json ya lo lista en relationships.requires; ${readmeFix}`, "");
+  lines.push(`Requiere ${opts.requires}:`, `  - module.json ya lo lista en relationships.requires; ${readmeFix}`);
+  // The protected manifest may not carry the base's GitHub manifest, so a
+  // patron's Foundry can only find the base in the foundryvtt.com listing.
+  if (mode === "protected") {
+    lines.push(`  - Publica ${opts.requires} en foundryvtt.com (gratuita, mismo id) antes del primer release: Foundry la encuentra solo por su id. No agregues su "manifest" al requires.`);
+  }
+  lines.push("");
 }
 if (paizo === "orc") {
   lines.push(

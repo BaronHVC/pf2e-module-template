@@ -63,7 +63,7 @@ node tools/init-module.mjs --id baron-shop-plus --title "Baron's Shop Plus" --de
 
 ### Freemium: base gratuita + complemento de pago
 
-- **Base:** repo público, `--mode public --paizo orc`, código MIT. Funciona **al 100 % sola**, con o sin el complemento.
+- **Base:** repo público, `--mode public --paizo orc`, código MIT. Funciona **al 100 % sola**, con o sin el complemento. Se publica en foundryvtt.com como paquete gratuito antes del primer release del complemento (ver abajo).
 - **Complemento:** su propio repo **privado**, `--mode protected` (ORC por defecto), código con todos los derechos reservados. En su `module.json`, `relationships.requires` apunta a la base: `--requires baron-shop` escribe `{ "id": "baron-shop", "type": "module", "compatibility": {} }` (sin `--requires`, el script avisa). En su README, corrige el resumen en inglés y la línea *Requiere*, que heredan "no necesita ningún otro módulo" (el script lo recuerda).
 - El código de pago vive **solo** en el complemento: nada de funciones de pago escondidas tras una bandera en el repo público.
 - La base expone en su `init` un registro de funciones en su API (`game.modules.get(id).api`); el complemento se registra ahí desde su `setup` o `ready`. Nunca un import entre los dos módulos.
@@ -73,7 +73,10 @@ Las reglas de código están en `CLAUDE.md` (sección *Freemium*), que hereda ca
 
 ### Crear un complemento de pago
 
-Requisito previo, una sola vez: aceptar el **Premium Content Agreement** de Foundry en tu cuenta de creador de foundryvtt.com.
+Requisitos previos:
+
+- Una sola vez: aceptar el **Premium Content Agreement** de Foundry en tu cuenta de creador de foundryvtt.com.
+- Por cada base, antes del primer release del complemento: la **base gratuita publicada en foundryvtt.com** como paquete gratuito normal, con el mismo id que pasas a `--requires`. El manifiesto protegido no puede llevar el `manifest` de la base (es un enlace a GitHub, y el release protegido los rechaza todos), así que Foundry la encuentra solo por su id en el listado de foundryvtt.com: si no está ahí, un mecenas que instala el complemento no tiene de dónde bajar la base. No agregues ese `manifest` al `requires`.
 
 1. **Use this template → Create a new repository**, con el repo **privado** y el id del complemento como nombre (por ejemplo `baron-shop-plus`).
 2. Inicialízalo como complemento de su base:
@@ -85,7 +88,7 @@ Requisito previo, una sola vez: aceptar el **Premium Content Agreement** de Foun
 3. Llena `"landingUrl"` en `baron.json` con una URL `https` pública del módulo (la página del paquete, `https://foundryvtt.com/packages/<id>`, o tu Patreon): el manifiesto protegido la usa como `url`, porque la del repo privado no puede publicarse, y `check-module` falla mientras esté vacía. Rellena los corchetes de `NOTICE.md` (ORC) y corrige en el README el resumen en inglés, la línea *Requiere* y la sección *Instalación*.
 4. Escribe el código: el complemento registra sus funciones en la API de la base desde su `setup` o `ready` (`game.modules.get("baron-shop")?.api`), nunca con un import.
 5. Etiqueta (`git tag v0.1.0` y luego `git push origin v0.1.0`). La CI arma el ZIP protegido (`"protected": true`, sin `download`, manifiesto alojado por Foundry) y lo publica como release **del repo privado**; nunca toca el canal `dev`.
-6. A mano, con la lista que deja el resumen del workflow: descarga el ZIP de ese release, súbelo en https://foundryvtt.com/creators/upload al paquete `<id>` con su versión y compatibilidad (la primera versión espera la aprobación de Foundry), elige los niveles de Patreon en la página del paquete y prueba la instalación desde una cuenta de mecenas. Los mecenas obtienen acceso al vincular su Patreon en su perfil de foundryvtt.com.
+6. A mano, con la lista que deja el resumen del workflow: descarga el ZIP de ese release, súbelo en https://foundryvtt.com/creators/upload al paquete `<id>` con su versión y compatibilidad (la primera versión espera la aprobación de Foundry), elige los niveles de Patreon en la página del paquete y prueba la instalación desde una cuenta de mecenas: Foundry tiene que instalar también la base. Los mecenas obtienen acceso al vincular su Patreon en su perfil de foundryvtt.com.
 
 El paso 5 necesita un baron-core posterior a v1.0.0 (resincroniza con `sync-core`): con v1.0.0, `module-release.yml` falla a propósito en modo protegido.
 

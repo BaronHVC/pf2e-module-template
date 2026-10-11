@@ -36,7 +36,7 @@ Módulo de Foundry VTT (v13–v14) para el sistema PF2e, de la familia BaronHVC.
 
 Un proyecto con parte de pago son dos módulos, y **los dos** van con `"paizo": "orc"`:
 
-- **Base:** repo público, `"mode": "public"`, código MIT. Funciona al 100 % sola: ninguna función suya depende de que el complemento esté instalado.
+- **Base:** repo público, `"mode": "public"`, código MIT. Funciona al 100 % sola: ninguna función suya depende de que el complemento esté instalado. Se publica en foundryvtt.com (gratuita, con el mismo id) antes del primer release del complemento: el manifiesto protegido no puede llevar su `manifest` (enlace a GitHub), así que Foundry la encuentra solo por su id.
 - **Complemento:** repo privado, `"mode": "protected"`, código con todos los derechos reservados, `relationships.requires` hacia la base en su `module.json` (ese `requires` sí va; el prohibido es el de `pf2e-baron-core`). Corrige también su README: el resumen en inglés y la línea *Requiere* heredados dicen que no necesita otro módulo.
 - **El código de pago vive solo en el complemento.** Nada de funciones de pago escondidas en la base tras una bandera o un ajuste: el repo de la base es público y MIT.
 - **La base expone un registro de funciones** en su API pública, puesta en `init` (regla 12): por ejemplo `api.registerFeature(key, def)`. El complemento se registra desde su `setup` o `ready` con `game.modules.get("<id-de-la-base>")?.api`. La base consulta el registro cuando lo usa, no una sola vez al arrancar, para no depender del orden de carga. Esa API es un contrato con el complemento: no la rompas sin subir la versión mayor.
@@ -45,14 +45,14 @@ Un proyecto con parte de pago son dos módulos, y **los dos** van con `"paizo": 
 
 ### Crear un complemento de pago
 
-Requisito del autor, una sola vez: el Premium Content Agreement de Foundry.
+Requisitos del autor: una sola vez, el Premium Content Agreement de Foundry; por cada base, publicarla en foundryvtt.com como paquete gratuito con el mismo id antes del primer release del complemento (sin `manifest` en el `requires`: Foundry la encuentra por su id).
 
 1. *Use this template* hacia un repo **privado** con el id del complemento.
 2. `node tools/init-module.mjs ... --mode protected --requires <id-de-la-base>` (escribe la base en `relationships.requires`).
 3. Llena `"landingUrl"` en `baron.json` y los corchetes de la ORC en `NOTICE.md`; corrige el README (resumen en inglés, *Requiere*, *Instalación*).
 4. El complemento registra sus funciones en la API de la base desde su `setup` o `ready`, nunca con un import.
 5. Etiqueta: la CI (baron-core posterior a v1.0.0) arma el ZIP protegido y lo publica como release del repo privado; nunca el canal `dev`.
-6. A mano: sube el ZIP en https://foundryvtt.com/creators/upload (la primera versión espera aprobación), elige los niveles de Patreon en la página del paquete y prueba la instalación desde una cuenta de mecenas.
+6. A mano: sube el ZIP en https://foundryvtt.com/creators/upload (la primera versión espera aprobación), elige los niveles de Patreon en la página del paquete y prueba la instalación desde una cuenta de mecenas (tiene que instalar también la base).
 
 ## Estilo
 
