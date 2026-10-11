@@ -26,6 +26,11 @@ Módulo de Foundry VTT (v13–v14) para el sistema PF2e, de la familia BaronHVC.
 11. **Helpers de Handlebars con prefijo** (`__PREFIX__Eq`, no `eq`): son globales y gana el último que se registra.
 12. **API pública** en `init` con `mod.api = Object.assign(mod.api ?? {}, {...})`, con `version` y `coreVersion` siempre. Otro módulo la lee desde su `setup` o `ready`, nunca desde su `init` (si carga antes, todavía no existe).
 13. **Versiones:** las pone la etiqueta del release; no edites a mano `version`, `manifest` ni `download` de `module.json`. Nunca agregues `"protected"` ni un `requires` de `pf2e-baron-core` a `module.json`.
+14. **Envolver métodos internos de PF2e o Foundry** (de un prototipo o estáticos del sistema, como `game.pf2e.Check.roll`):
+    - Si `globalThis.libWrapper` existe, usa `libWrapper.register(MODULE_ID, "<ruta>", fn, "WRAPPER")`. Otros módulos populares (Toolbelt, Visioner) envuelven los mismos métodos con lib-wrapper, y una asignación manual encima de un método que él administra puede volver a entrar a su despachador. Es una dependencia suave: no la declares en `relationships.requires`.
+    - Si no existe, hazlo a mano: instala en el dueño real del método (sube por la cadena con `hasOwnProperty`), guarda el original, **llámalo siempre** (`orig.call(this, ...args)`) y marca el dueño con una bandera propia del módulo (`_<prefijo>Wrapped<Metodo>`) para no instalarlo dos veces.
+    - Regístralo en `setup` o después, cuando el sistema y lib-wrapper ya cargaron. Nunca uses `"OVERRIDE"` ni un reemplazo que no llame al original.
+    - Antes de envolver un método, revisa la columna «Envuelve» de `REGISTRY.md` en `pf2e-baron-core`: si otro módulo de la familia ya lo envuelve, coordínalo. Anota ahí cada método que envuelvas.
 
 ## Freemium (base gratuita + complemento de pago)
 
