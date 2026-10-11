@@ -124,7 +124,7 @@ Antes de etiquetar: `check-module` en verde, la versión de baron-core anotada e
 
 ## Licencia y avisos legales
 
-Los avisos sobre material de Paizo están en [NOTICE.md](NOTICE.md): revísalos antes de cada publicación y copia el aviso requerido también a la descripción del paquete en foundryvtt.com (el ZIP del release no lleva `NOTICE.md`). Este repo **no trae archivo `LICENSE`**: la licencia del código es una decisión tuya; mientras no agregues una, el código queda con todos los derechos reservados.
+Los avisos sobre material de Paizo están en [NOTICE.md](NOTICE.md): revísalos antes de cada publicación y copia el aviso requerido también a la descripción del paquete en foundryvtt.com (el ZIP del release no lleva `NOTICE.md`). La licencia del código está en [LICENSE](LICENSE) y la escribe `init-module` según el modo: **MIT** para un módulo gratuito (`--mode public`) y **todos los derechos reservados** para uno de pago (`--mode protected`), a nombre de `--author`. En los dos casos `scripts/baron-core.js` sigue siendo MIT, la licencia de [pf2e-baron-core](https://github.com/BaronHVC/pf2e-baron-core). La licencia cubre solo el código: el material de Paizo va con los avisos de `NOTICE.md`.
 
 ## Reglas de la familia (resumen)
 

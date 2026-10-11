@@ -1,7 +1,8 @@
 // One-shot initializer for a repository created from pf2e-module-template.
 // It fills the placeholders, keeps only the NOTICE block that matches the
-// mode, strips the template-only notes and then deletes itself, so a module
-// can never be initialized twice with two different identities.
+// mode, writes the LICENSE that matches it (MIT for a free module, all rights
+// reserved for a paid one), strips the template-only notes and then deletes
+// itself, so a module can never be initialized twice with two identities.
 //
 //   node tools/init-module.mjs --id <id> --title <title> --description <text>
 //     --author <name> --prefix <prefix> --mode public|protected
@@ -40,6 +41,48 @@ const SKIP_DIRS = new Set([".git", "node_modules", ".baron-core", "build", ".cod
 // Written only by sync-core: the lock hash must keep matching the vendored copy.
 const SKIP_FILES = new Set(["scripts/baron-core.js", "baron-core.lock.json"]);
 const TEMPLATE_ONLY = /<!-- baron:template-only:start -->[\s\S]*?<!-- baron:template-only:end -->[ \t]*\r?\n?/g;
+
+// The template's own LICENSE is MIT, and so is every free module: only its
+// copyright line changes. A paid module gets this text instead. Its vendored
+// baron-core.js stays MIT even inside a paid zip, so the text says so.
+function paidLicense(author, year) {
+  return `Copyright (c) ${year} ${author}. All rights reserved.
+
+This module is made available to its supporters through Foundry VTT's
+protected content system. You may install it and use it in your own Foundry
+VTT games. You may not copy, share, redistribute, resell or publish its files,
+in whole or in part, or works derived from them, without written permission
+from the copyright holder.
+
+Exception: scripts/baron-core.js is part of pf2e-baron-core and is licensed
+under the MIT License (https://github.com/BaronHVC/pf2e-baron-core). That
+license, not this one, applies to that file.
+
+The Pathfinder material this module uses is covered by the notices in
+NOTICE.md.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+`;
+}
+
+function licenseFor(opts, year) {
+  if (opts.mode === "protected") return paidLicense(opts.author, year);
+  let mit;
+  try {
+    mit = fs.readFileSync(path.join(ROOT, "LICENSE"), "utf8");
+  } catch {
+    fail("falta LICENSE; restauralo desde la plantilla");
+  }
+  const holder = /^Copyright \(c\) .*$/m;
+  if (!mit.startsWith("MIT License") || !holder.test(mit)) fail("LICENSE ya no es la MIT de la plantilla; restauralo desde la plantilla");
+  return mit.replace(holder, `Copyright (c) ${year} ${opts.author}`);
+}
 
 const USAGE = `Uso:
   node tools/init-module.mjs --id <id> --title <titulo> --description <texto>
@@ -259,6 +302,8 @@ for (const rel of listFiles(ROOT)) {
 }
 if (leftovers.length) fail(`quedarian placeholders sin reemplazar (no se escribio nada):\n  ${leftovers.join("\n  ")}`);
 if (!fs.existsSync(path.join(ROOT, "NOTICE.md"))) fail("falta NOTICE.md; restauralo desde la plantilla");
+// LICENSE has no extension, so the loop above never reads it.
+writes.set("LICENSE", licenseFor(opts, new Date().getFullYear()));
 
 for (const [rel, text] of writes) fs.writeFileSync(path.join(ROOT, rel), text, "utf8");
 fs.unlinkSync(SELF);
@@ -272,6 +317,7 @@ const lines = [
   `  titulo:   ${opts.title}`,
   `  prefijo:  ${prefix} (.${prefix}-app, .${prefix}-open)`,
   `  modo:     ${mode} (${mode === "public" ? "aviso de la Community Use Policy" : "avisos de la ORC License"} en NOTICE.md)`,
+  `  licencia: ${mode === "public" ? "MIT" : "todos los derechos reservados (baron-core.js sigue MIT)"}, a nombre de ${opts.author}`,
   `  archivos actualizados: ${writes.size}`,
   "  tools/init-module.mjs se borro a si mismo.",
   ""
