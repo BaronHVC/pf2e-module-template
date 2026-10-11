@@ -3,12 +3,13 @@
 // whatever is not wired up here simply never happens.
 // isSoleExecutor and injectSheetButton are imported for the commented examples
 // at the bottom: drop whatever the module ends up not using.
-import { createI18n, makeCanEdit, isSoleExecutor, injectSheetButton } from "./baron-core.js";
+import { CORE_VERSION, createI18n, makeCanEdit, isSoleExecutor, injectSheetButton } from "./baron-core.js";
 
 // MODULE_ID is the manifest id, the flag scope, the settings namespace and the
 // i18n prefix, all at once and forever: renaming it orphans every flag and
-// setting already saved in users' worlds. baron.json lists it under
-// "persisted" so check-module fails if it ever disappears from scripts/.
+// setting already saved in users' worlds. baron.json lists it (and the setting
+// key "gmOnly") under "persisted", so check-module fails once that exact
+// string literal is gone from scripts/.
 export const MODULE_ID = "__MODULE_ID__";
 export const i18n = createI18n(MODULE_ID);
 export const canEdit = makeCanEdit(MODULE_ID);
@@ -19,8 +20,11 @@ export const canEdit = makeCanEdit(MODULE_ID);
  *   sync-core. A hand edit breaks the lock hash and check-module fails.
  * - Never import from another module's folder: The Forge serves modules from
  *   versioned paths, so a cross-module import loads a second, different copy.
- * - Every hook that writes documents returns early unless isSoleExecutor(),
- *   otherwise each connected GM applies the same change again.
+ * - A handler that writes documents from a hook every client receives
+ *   (createX/updateX/deleteX, combat turns, chat messages) returns early
+ *   unless isSoleExecutor(), otherwise each connected client repeats the
+ *   write. Never gate preCreate/preUpdate/preDelete or UI handlers: they run
+ *   only on the client that started the action.
  * - Never getFlag/setFlag with another module's scope (it throws while that
  *   module is inactive); read doc.flags?.[scope]?.[key] instead.
  * - Every CSS rule lives under .__PREFIX__-app or an explicit __PREFIX__-*
@@ -41,13 +45,17 @@ Hooks.once("init", () => {
     type: Boolean,
     default: true
   });
+
+  // Macros and other modules reach this one through game.modules.get(id).api.
+  // Attached in init, which needs no world data, so a module that loaded
+  // earlier can already read it from its own setup or ready. Object.assign
+  // keeps whatever was attached before. coreVersion is what bug reports ask
+  // for: F12, game.modules.get("<id>").api.coreVersion.
+  const mod = game.modules.get(MODULE_ID);
+  mod.api = Object.assign(mod.api ?? {}, { version: mod.version, coreVersion: CORE_VERSION });
 });
 
 Hooks.once("ready", () => {
-  // Macros and other modules reach this one through game.modules.get(id).api.
-  // Object.assign keeps whatever a companion module attached before ready.
-  const mod = game.modules.get(MODULE_ID);
-  mod.api = Object.assign(mod.api ?? {}, { version: mod.version });
   console.log(`${MODULE_ID} | ready`);
 });
 
@@ -72,8 +80,10 @@ Hooks.once("ready", () => {
 // Hooks.on("renderItemSheet", addOpenButton);
 // Hooks.on("renderItemSheetPF2e", addOpenButton);
 
-// Example: a hook that writes documents. Every connected client receives it,
-// so without the guard two GMs online would apply the same change twice.
+// Example: a hook that writes documents. Every connected client receives
+// createChatMessage, so without the guard each client would apply the same
+// change. A preCreateChatMessage handler would run only on the sender's client
+// and must not be gated.
 //
 // Hooks.on("createChatMessage", async (message) => {
 //   if (!isSoleExecutor()) return;

@@ -8,12 +8,16 @@
 //
 // Node built-ins only, so it runs right after cloning, with nothing installed.
 
+import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const SELF = fileURLToPath(import.meta.url);
 const ROOT = path.dirname(path.dirname(SELF));
+// The family's namespace table, when the core repo is cloned next to this one
+// (the layout the README asks for).
+const REGISTRY = path.join(ROOT, "..", "pf2e-baron-core", "REGISTRY.md");
 
 const FLAGS = ["id", "title", "description", "author", "prefix", "mode"];
 const MODES = ["public", "protected"];
@@ -91,6 +95,48 @@ function validate(opts) {
   }
 }
 
+// Reusing a registered id or prefix would make two modules share flags, CSS
+// classes, rule slugs or Handlebars helpers in the same world. The new module
+// claims its id (also its i18n prefix), "<prefix>-*" and "<prefix>X" helpers.
+// Returns null when the registry is not there to compare with.
+function registryClashes(opts) {
+  if (!fs.existsSync(REGISTRY)) return null;
+  const clashes = [];
+  const words = (cell) => cell.split(/[\s,/]+/).filter((w) => w && !["ninguno", "none"].includes(w.toLowerCase()));
+  for (const line of fs.readFileSync(REGISTRY, "utf8").split(/\r?\n/)) {
+    if (!line.startsWith("|") || /^\|\s*-/.test(line)) continue;
+    const cells = line.split("|").slice(1, -1).map((cell) => cell.replace(/`/g, "").trim());
+    if (cells.length < 7 || cells[0].startsWith("id ")) continue; // header row
+    const [rowId, rowI18n] = cells;
+    if (rowId.toLowerCase() === opts.id || rowI18n.toLowerCase() === opts.id) {
+      clashes.push(`--id ${opts.id}: ya es el id o el prefijo i18n de ${rowId}`);
+    }
+    const p = opts.prefix;
+    const taken = cells.slice(2, 6).flatMap(words).filter((w) => {
+      const lower = w.toLowerCase();
+      return lower === p || lower.startsWith(`${p}-`) || (w.startsWith(p) && /^[A-Z]/.test(w.slice(p.length)));
+    });
+    if (taken.length) clashes.push(`--prefix ${p}: choca con ${taken.join(", ")} de ${rowId}`);
+  }
+  return clashes;
+}
+
+// The origin remote's repository name, or null when this folder is not a git
+// clone of its own (checked by .git so a parent repo is never consulted).
+function originRepoName() {
+  if (!fs.existsSync(path.join(ROOT, ".git"))) return null;
+  try {
+    const url = execFileSync("git", ["-C", ROOT, "remote", "get-url", "origin"], {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+      windowsHide: true
+    }).trim();
+    return /([^/\\:]+?)(?:\.git)?[/\\]?$/.exec(url)?.[1] ?? null;
+  } catch {
+    return null;
+  }
+}
+
 function listFiles(dir, rel = "") {
   const out = [];
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -159,6 +205,25 @@ try {
 }
 if (manifest.id !== "__MODULE_ID__") fail(`este repo ya esta inicializado (module.json id = "${manifest.id}")`);
 
+const clashes = registryClashes(opts);
+if (clashes?.length) {
+  fail(`el id o el prefijo ya estan registrados en ${REGISTRY} (no se escribio nada):\n  ${clashes.join("\n  ")}`);
+}
+// The README, module.json url and the issue links are built from the id,
+// while the release workflow uses the real repository name: they must match.
+const warnings = [];
+if (clashes === null) {
+  warnings.push(`no encontre ${REGISTRY}: revisa a mano que el id y el prefijo no esten tomados por otro modulo de la familia.`);
+}
+const folder = path.basename(ROOT);
+if (folder !== opts.id) {
+  warnings.push(`la carpeta se llama "${folder}", no "${opts.id}": el repo de GitHub tiene que llamarse como el id, porque las URLs del README y de module.json apuntan a https://github.com/BaronHVC/${opts.id}.`);
+}
+const origin = originRepoName();
+if (origin && origin !== opts.id) {
+  warnings.push(`el remoto origin apunta al repo "${origin}", no a "${opts.id}": renombra el repo en GitHub o usa --id ${origin}.`);
+}
+
 // Everything is computed and checked in memory first: a bad template file
 // aborts the run before a single file is written, so it can simply be rerun.
 const writes = new Map();
@@ -200,6 +265,8 @@ fs.unlinkSync(SELF);
 
 const { id, prefix, mode } = opts;
 const lines = [
+  ...warnings.map((w) => `AVISO: ${w}`),
+  ...(warnings.length ? [""] : []),
   "init-module: listo.",
   `  id:       ${id}`,
   `  titulo:   ${opts.title}`,
@@ -221,16 +288,22 @@ if (mode === "protected") {
   }
   lines.push("");
 }
+// Same rule as REGISTRY.md: a free module registers before any code is
+// written, a paid one only when it is published (the core repo is public).
 lines.push(
-  "Fila para REGISTRY.md de pf2e-baron-core, a agregar cuando el modulo se publique",
-  "(los de pago, solo al publicarse: ese repo es publico):",
+  mode === "public"
+    ? "Agrega ya esta fila a REGISTRY.md de pf2e-baron-core, antes de escribir codigo:"
+    : "Fila para REGISTRY.md de pf2e-baron-core: agregala solo cuando el modulo se publique (ese repo es publico):",
   "",
-  `| ${id} | ${id} | ${prefix}-app / ${prefix}-open | ${prefix}- | ${prefix}- | ${prefix} | none |`,
+  `| \`${id}\` | \`${id}\` | \`${prefix}-app\` / \`${prefix}-open\` | \`${prefix}-\` | \`${prefix}-\` | \`${prefix}\` | ninguno |`,
   "",
+  // One command per line: Windows PowerShell 5.1 rejects "&&".
   "Siguientes pasos:",
-  "  1. powershell -File tools/link-foundry.ps1",
+  "  1. powershell -NoProfile -ExecutionPolicy Bypass -File tools/link-foundry.ps1",
   "  2. Activa el modulo en un mundo con PF2e.",
   "  3. node ../pf2e-baron-core/tools/check-module.mjs .",
-  `  4. git add -A && git commit -m "Initialize ${id} from pf2e-module-template"`
+  "  4. git add -A",
+  `     git commit -m "Initialize ${id} from pf2e-module-template"`,
+  "     git push"
 );
 console.log(lines.join("\n"));

@@ -4,6 +4,7 @@
   "i18nPrefix": "__MODULE_ID__",
   "langParity": "error",
   "persisted": [
-    "__MODULE_ID__"
+    "__MODULE_ID__",
+    "gmOnly"
   ]
 }

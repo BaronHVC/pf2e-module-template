@@ -32,7 +32,7 @@ body:
     id: core
     attributes:
       label: "Versión de baron-core / baron-core version"
-      description: "Viene en las notas del release y en el CHANGELOG del módulo; si no la sabes, déjalo vacío. / Listed in the release notes and CHANGELOG; leave empty if unsure."
+      description: "En un mundo con el módulo activo: F12 → Console → game.modules.get(\"__MODULE_ID__\").api.coreVersion (también viene en el CHANGELOG del módulo); si no la sabes, déjalo vacío. / In a world with the module enabled: F12 → Console → game.modules.get(\"__MODULE_ID__\").api.coreVersion (also in the module's CHANGELOG); leave empty if unsure."
       placeholder: "1.0.0-rc.1"
     validations:
       required: false

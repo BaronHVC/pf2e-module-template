@@ -14,14 +14,18 @@
   Compatible con Windows PowerShell 5.1. Este archivo es ASCII a proposito:
   PowerShell 5.1 lee los .ps1 sin BOM con la pagina de codigos del sistema.
 
+  Se corre con -ExecutionPolicy Bypass, que vale solo para ese proceso: sin el,
+  la politica por defecto de Windows (Restricted) no deja correr ningun .ps1.
+  No cambia ningun ajuste del sistema.
+
 .PARAMETER DataPath
   Carpeta Data de Foundry (la que contiene modules\, systems\, worlds\).
 
 .EXAMPLE
-  powershell -File tools/link-foundry.ps1
+  powershell -NoProfile -ExecutionPolicy Bypass -File tools/link-foundry.ps1
 
 .EXAMPLE
-  powershell -File tools/link-foundry.ps1 -DataPath "D:\FoundryData\Data"
+  powershell -NoProfile -ExecutionPolicy Bypass -File tools/link-foundry.ps1 -DataPath "D:\FoundryData\Data"
 #>
 [CmdletBinding()]
 param(
