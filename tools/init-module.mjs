@@ -1,11 +1,17 @@
 // One-shot initializer for a repository created from pf2e-module-template.
 // It fills the placeholders, keeps only the NOTICE block that matches the
-// mode, writes the LICENSE that matches it (MIT for a free module, all rights
-// reserved for a paid one), strips the template-only notes and then deletes
-// itself, so a module can never be initialized twice with two identities.
+// Paizo license, writes the LICENSE that matches the mode (MIT for a public
+// module, all rights reserved for a protected one), strips the template-only
+// notes and then deletes itself, so a module can never be initialized twice
+// with two identities.
 //
 //   node tools/init-module.mjs --id <id> --title <title> --description <text>
-//     --author <name> --prefix <prefix> --mode public|protected
+//     --author <name> --prefix <prefix> --mode public|protected [--paizo cup|orc]
+//
+// Mode and Paizo license are separate axes because the license follows the
+// whole project, not the price of each package: the free base of a freemium
+// pair is public yet must use ORC, since the Community Use Policy forbids any
+// paywall anywhere in the project.
 //
 // Node built-ins only, so it runs right after cloning, with nothing installed.
 
@@ -20,8 +26,11 @@ const ROOT = path.dirname(path.dirname(SELF));
 // (the layout the README asks for).
 const REGISTRY = path.join(ROOT, "..", "pf2e-baron-core", "REGISTRY.md");
 
-const FLAGS = ["id", "title", "description", "author", "prefix", "mode"];
+const FLAGS = ["id", "title", "description", "author", "prefix", "mode", "paizo"];
+// --paizo has a default that depends on --mode, so it is the only optional one.
+const OPTIONAL = new Set(["paizo"]);
 const MODES = ["public", "protected"];
+const PAIZO = ["cup", "orc"];
 // Same pattern as check-module's leftover-placeholder rule, so whatever this
 // script lets through would also fail CI.
 const PLACEHOLDER = /__[A-Z][A-Z0-9_]*__/g;
@@ -42,9 +51,10 @@ const SKIP_DIRS = new Set([".git", "node_modules", ".baron-core", "build", ".cod
 const SKIP_FILES = new Set(["scripts/baron-core.js", "baron-core.lock.json"]);
 const TEMPLATE_ONLY = /<!-- baron:template-only:start -->[\s\S]*?<!-- baron:template-only:end -->[ \t]*\r?\n?/g;
 
-// The template's own LICENSE is MIT, and so is every free module: only its
-// copyright line changes. A paid module gets this text instead. Its vendored
-// baron-core.js stays MIT even inside a paid zip, so the text says so.
+// The template's own LICENSE is MIT, and so is every public module (a freemium
+// base included, whatever its Paizo license): only its copyright line changes.
+// A protected (paid) module gets this text instead. Its vendored baron-core.js
+// stays MIT even inside a paid zip, so the text says so.
 function paidLicense(author, year) {
   return `Copyright (c) ${year} ${author}. All rights reserved.
 
@@ -86,14 +96,20 @@ function licenseFor(opts, year) {
 
 const USAGE = `Uso:
   node tools/init-module.mjs --id <id> --title <titulo> --description <texto>
-    --author <autor> --prefix <prefijo> --mode public|protected
+    --author <autor> --prefix <prefijo> --mode public|protected [--paizo cup|orc]
 
   --id           id del modulo: minusculas, digitos y guiones (pf2e-baron-shop)
   --title        titulo visible (Baron's Shop)
   --description  descripcion corta para module.json y el README
   --author       autor para module.json y los avisos legales
   --prefix       prefijo CSS/clases: empieza con letra, 2-12 letras o digitos (bshop)
-  --mode         public (gratis, Community Use Policy) | protected (de pago, ORC)`;
+  --mode         como se distribuye: public (repo publico, codigo MIT)
+                 | protected (repo privado, paquete protegido de pago, todos los derechos reservados)
+  --paizo        licencia de Paizo para el material del juego (elige el bloque de NOTICE.md):
+                 cup (Community Use Policy) | orc (ORC License).
+                 Opcional: cup con --mode public, orc con --mode protected.
+                 protected + cup no se permite: la CUP prohibe cualquier muro de pago.
+                 La base gratuita de un freemium usa --mode public --paizo orc.`;
 
 function fail(message) {
   console.error(`init-module: ${message}`);
@@ -122,7 +138,7 @@ function parseArgs(argv) {
 }
 
 function validate(opts) {
-  const missing = FLAGS.filter((f) => !opts[f]);
+  const missing = FLAGS.filter((f) => !OPTIONAL.has(f) && !opts[f]);
   if (missing.length) fail(`faltan: ${missing.map((f) => "--" + f).join(", ")}\n\n${USAGE}`);
   if (!/^[a-z0-9-]+$/.test(opts.id)) fail(`--id invalido "${opts.id}": solo minusculas, digitos y guiones`);
   if (opts.id === "pf2e-module-template") fail("--id no puede ser el de la plantilla");
@@ -130,6 +146,17 @@ function validate(opts) {
     fail(`--prefix invalido "${opts.prefix}": empieza con letra y lleva de 2 a 12 minusculas o digitos`);
   }
   if (!MODES.includes(opts.mode)) fail(`--mode invalido "${opts.mode}": public o protected`);
+  // Checked against undefined, not falsy: an explicit empty --paizo= is a
+  // typo to report, not a request for the default.
+  if (opts.paizo === undefined) opts.paizo = opts.mode === "protected" ? "orc" : "cup";
+  if (!PAIZO.includes(opts.paizo)) fail(`--paizo invalido "${opts.paizo}": cup u orc`);
+  if (opts.mode === "protected" && opts.paizo === "cup") {
+    fail(
+      "--mode protected no puede ir con --paizo cup: la Community Use Policy de Paizo prohibe cobrar o poner " +
+        "cualquier parte del proyecto detras de un muro de pago. Un paquete de pago va con --paizo orc " +
+        "(y su base gratuita tambien, con --mode public --paizo orc)."
+    );
+  }
   for (const key of ["title", "description", "author"]) {
     // A line break or a control character would break JSON, YAML and markdown
     // alike; a placeholder inside a value would never get filled.
@@ -194,16 +221,17 @@ function listFiles(dir, rel = "") {
   return out;
 }
 
-// Keeps the body of the notice block for this mode and removes the other one
-// entirely, markers included: a free module must not carry the paid notices
-// and the other way around.
-function pickNotice(text, mode) {
+// Keeps the body of the notice block for this Paizo license and removes the
+// other one entirely, markers included: a module under one license must not
+// also claim the other. The block follows --paizo, never --mode, because a
+// free freemium base still needs the ORC notices.
+function pickNotice(text, paizo) {
   const block = (name) =>
     new RegExp(`<!-- baron:notice-${name}:start -->[ \\t]*\\r?\\n([\\s\\S]*?)<!-- baron:notice-${name}:end -->[ \\t]*\\r?\\n?`);
-  const keep = mode === "public" ? "free" : "paid";
-  const drop = mode === "public" ? "paid" : "free";
+  const keep = paizo;
+  const drop = PAIZO.find((p) => p !== paizo);
   if (!block(keep).test(text) || !block(drop).test(text)) {
-    fail("NOTICE.md no tiene los bloques baron:notice-free y baron:notice-paid; restauralo desde la plantilla");
+    fail("NOTICE.md no tiene los bloques baron:notice-cup y baron:notice-orc; restauralo desde la plantilla");
   }
   return text.replace(block(drop), "").replace(block(keep), (_, body) => body);
 }
@@ -280,13 +308,14 @@ for (const rel of listFiles(ROOT)) {
   let text = before;
   if (ext === ".md") {
     text = text.replace(TEMPLATE_ONLY, "");
-    if (rel === "NOTICE.md") text = pickNotice(text, opts.mode);
+    if (rel === "NOTICE.md") text = pickNotice(text, opts.paizo);
     if (text !== before) text = tidyMarkdown(text);
   }
   text = fill(text, ext, opts);
   if (rel === "baron.json") {
     const config = JSON.parse(stripBom(text));
     config.mode = opts.mode;
+    config.paizo = opts.paizo;
     text = JSON.stringify(config, null, 2) + "\n";
   }
   if (ext === ".json") {
@@ -308,7 +337,7 @@ writes.set("LICENSE", licenseFor(opts, new Date().getFullYear()));
 for (const [rel, text] of writes) fs.writeFileSync(path.join(ROOT, rel), text, "utf8");
 fs.unlinkSync(SELF);
 
-const { id, prefix, mode } = opts;
+const { id, prefix, mode, paizo } = opts;
 const lines = [
   ...warnings.map((w) => `AVISO: ${w}`),
   ...(warnings.length ? [""] : []),
@@ -316,7 +345,8 @@ const lines = [
   `  id:       ${id}`,
   `  titulo:   ${opts.title}`,
   `  prefijo:  ${prefix} (.${prefix}-app, .${prefix}-open)`,
-  `  modo:     ${mode} (${mode === "public" ? "aviso de la Community Use Policy" : "avisos de la ORC License"} en NOTICE.md)`,
+  `  modo:     ${mode} (${mode === "public" ? "repo publico, release normal" : "repo privado, paquete protegido de pago"}; baron.json "mode")`,
+  `  paizo:    ${paizo} (${paizo === "cup" ? "aviso de la Community Use Policy" : "avisos de la ORC License"} en NOTICE.md; baron.json "paizo")`,
   `  licencia: ${mode === "public" ? "MIT" : "todos los derechos reservados (baron-core.js sigue MIT)"}, a nombre de ${opts.author}`,
   `  archivos actualizados: ${writes.size}`,
   "  tools/init-module.mjs se borro a si mismo.",
@@ -327,15 +357,24 @@ if (mode === "protected") {
     "Modo protected:",
     "  - El repo tiene que ser PRIVADO.",
     "  - El release protegido todavia no esta implementado: module-release.yml falla a proposito.",
+    ""
+  );
+}
+if (paizo === "orc") {
+  lines.push(
+    "Paizo orc:",
     "  - Rellena los corchetes de NOTICE.md (obras ORC usadas, Reserved Material) antes de publicar."
   );
+  // The CUP lets a free project use Paizo's trademarks; the ORC never licenses
+  // them, free or paid, and the id cannot be renamed later.
   if (/pf2e|pathfinder/i.test(`${id} ${opts.title}`)) {
-    lines.push("  - El id o el titulo usan PF2e/Pathfinder: en un modulo de pago es una pregunta legal abierta (ver NOTICE.md).");
+    lines.push("  - El id o el titulo usan PF2e/Pathfinder: la ORC nunca licencia marcas de Paizo, es una pregunta legal abierta y el id es para siempre (ver NOTICE.md).");
   }
   lines.push("");
 }
-// Same rule as REGISTRY.md: a free module registers before any code is
-// written, a paid one only when it is published (the core repo is public).
+// Same rule as REGISTRY.md: a public module registers before any code is
+// written, a protected one only when it is published (the core repo is
+// public).
 lines.push(
   mode === "public"
     ? "Agrega ya esta fila a REGISTRY.md de pf2e-baron-core, antes de escribir codigo:"

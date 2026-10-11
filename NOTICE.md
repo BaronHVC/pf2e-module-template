@@ -2,16 +2,18 @@
 
 > **REVISAR ANTES DE PUBLICAR — esto no es asesoría legal.** Los textos de abajo se copiaron de las páginas oficiales de Paizo el 2026-10-10. Antes de cada publicación, vuelve a abrir la página citada en el bloque que aplica, compara el texto y, si cambió, usa el nuevo. Si hay dinero de por medio, consúltalo con un abogado.
 
-Avisos legales de **__TITLE__** (`__MODULE_ID__`). Este archivo dice qué material de terceros usa el módulo y bajo qué licencia; la licencia del **código** del módulo es otra decisión (este repo no trae `LICENSE` a propósito).
+Avisos legales de **__TITLE__** (`__MODULE_ID__`). Este archivo dice qué material de terceros usa el módulo y bajo qué licencia; la licencia del **código** del módulo es otra decisión y está en `LICENSE`.
 
-<!-- baron:notice-free:start -->
-## Módulo gratuito: Community Use Policy de Paizo
+La licencia de Paizo (`"paizo"` en `baron.json`) la decide el **proyecto completo**, no el precio de cada paquete. **Freemium:** si el proyecto tiene o tendrá una parte de pago, la base gratuita y el complemento de pago van **los dos** con la ORC License, porque la Community Use Policy prohíbe cualquier muro de pago en el proyecto; la base sigue siendo gratis y su código MIT. Un módulo bajo la Community Use Policy que gane un complemento de pago pasa a ORC antes de que el complemento se publique.
+
+<!-- baron:notice-cup:start -->
+## Community Use Policy de Paizo: módulo gratuito sin ninguna parte de pago
 
 **Fuente:** https://paizo.com/licenses/communityuse (la página dice *Last Updated Thursday, August 22, 2024*; consultada el 2026-10-10).
 
 Qué implica, en resumen (lee la política completa en la fuente):
 
-- El módulo tiene que ser **gratis para todos**: nada detrás de un muro de pago de ningún tipo. La política no nombra el acceso anticipado, pero nuestra lectura es que también lo prohíbe, igual que las versiones solo para mecenas. Las **donaciones** (Patreon, Ko-fi…) sí se permiten, siempre que el módulo siga siendo gratis para cualquiera.
+- El módulo tiene que ser **gratis para todos**: nada detrás de un muro de pago de ningún tipo, tampoco en un complemento aparte (para eso está la ORC: ver *Freemium* arriba). La política no nombra el acceso anticipado, pero nuestra lectura es que también lo prohíbe, igual que las versiones solo para mecenas. Las **donaciones** (Patreon, Ko-fi…) sí se permiten, siempre que el módulo siga siendo gratis para cualquiera.
 - "Gratis" también significa sin trabas: no se puede exigir llenar encuestas, suscribirse a listas de correo ni descargar otros productos para obtener el módulo.
 - El aviso de abajo va en una forma legible en el proyecto: en este archivo (enlazado desde el README) y en la descripción del paquete en foundryvtt.com, porque el ZIP del release no lleva `NOTICE.md`.
 - Hay que poner **información de contacto actualizada** en un lugar visible (abajo).
@@ -25,17 +27,17 @@ __TITLE__ uses trademarks and/or copyrights owned by Paizo Inc., used under Paiz
 ### Contacto
 
 __AUTHOR__ — https://github.com/BaronHVC/__MODULE_ID__/issues
-<!-- baron:notice-free:end -->
+<!-- baron:notice-cup:end -->
 
-<!-- baron:notice-paid:start -->
-## Módulo de pago: ORC License
+<!-- baron:notice-orc:start -->
+## ORC License: módulos de pago, bases de un freemium y cualquier módulo que prefiera la ORC
 
 **Fuente:** https://paizo.com/orclicense (texto de la ORC License y su AxE; la página no muestra fecha de *last updated*; consultada el 2026-10-10). Registro: Library of Congress TX 9-307-067.
 
 Qué implica, en resumen (lee la licencia completa en la fuente):
 
-- La Community Use Policy **no sirve** para un módulo de pago: exige que todo sea gratis. La ORC sí permite uso comercial, con cuatro avisos obligatorios (sección III, incisos a–d), puestos "de manera razonable" según el medio: aquí, en el README y en la página del paquete.
-- La ORC **nunca** licencia marcas. "PF2e" o "Pathfinder" en el título o el id de un módulo de pago es una **pregunta legal abierta**: decídelo antes de publicar (o pregunta a Paizo por escrito).
+- La Community Use Policy **no sirve** para un módulo de pago ni para la base gratuita de un freemium: prohíbe cualquier muro de pago en el proyecto. La ORC sí permite uso comercial, con cuatro avisos obligatorios (sección III, incisos a–d), puestos "de manera razonable" según el medio: aquí, en el README y en la página del paquete.
+- La ORC **nunca** licencia marcas (la Community Use Policy sí permite usarlas, solo en proyectos gratuitos). "PF2e" o "Pathfinder" en el título o el id de un módulo bajo ORC, sea de pago o gratuito, es una **pregunta legal abierta**: decídelo antes de publicar (o pregunta a Paizo por escrito); el id no se puede cambiar después.
 - La ORC cubre mecánicas del juego, no código: la licencia del código del módulo la decides tú.
 - Lo que el módulo lee en tiempo de ejecución del sistema PF2e instalado no se redistribuye; no copies texto, arte ni íconos de los compendios al módulo.
 - Rellena todo lo que está entre corchetes `[ ]` y borra estas notas antes de publicar.
@@ -63,4 +65,4 @@ Reserved Material elements in this product include, but may not be limited to: [
 ### Expressly Designated Licensed Material
 
 The following elements are owned by the Licensor and would otherwise constitute Reserved Material and are hereby designated as Licensed Material: [ninguno].
-<!-- baron:notice-paid:end -->
+<!-- baron:notice-orc:end -->

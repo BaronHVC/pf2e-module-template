@@ -9,7 +9,7 @@ Módulo de Foundry VTT (v13–v14) para el sistema PF2e, de la familia BaronHVC.
 
 - Id / scope de flags / namespace de ajustes / prefijo de idioma: `__MODULE_ID__` (`MODULE_ID` en `scripts/main.js`).
 - Prefijo CSS y de clases: `__PREFIX__` (raíz de las ventanas: `.__PREFIX__-app`; botón de cabecera: `.__PREFIX__-open`).
-- Modo y configuración de CI: `baron.json`.
+- `baron.json`: configuración de CI y dos ejes independientes. `mode` (`public` | `protected`) es cómo se distribuye y decide `LICENSE` (MIT | todos los derechos reservados). `paizo` (`cup` | `orc`) es la licencia de Paizo del material del juego y decide el bloque de `NOTICE.md`. `protected` + `cup` está prohibido: la Community Use Policy no admite ningún muro de pago en el proyecto. Si cambias `paizo`, cambia `NOTICE.md` en el mismo commit; check-module revisa que coincidan.
 
 ## Reglas de la familia
 
@@ -26,6 +26,17 @@ Módulo de Foundry VTT (v13–v14) para el sistema PF2e, de la familia BaronHVC.
 11. **Helpers de Handlebars con prefijo** (`__PREFIX__Eq`, no `eq`): son globales y gana el último que se registra.
 12. **API pública** en `init` con `mod.api = Object.assign(mod.api ?? {}, {...})`, con `version` y `coreVersion` siempre. Otro módulo la lee desde su `setup` o `ready`, nunca desde su `init` (si carga antes, todavía no existe).
 13. **Versiones:** las pone la etiqueta del release; no edites a mano `version`, `manifest` ni `download` de `module.json`. Nunca agregues `"protected"` ni un `requires` de `pf2e-baron-core` a `module.json`.
+
+## Freemium (base gratuita + complemento de pago)
+
+Un proyecto con parte de pago son dos módulos, y **los dos** van con `"paizo": "orc"`:
+
+- **Base:** repo público, `"mode": "public"`, código MIT. Funciona al 100 % sola: ninguna función suya depende de que el complemento esté instalado.
+- **Complemento:** repo privado, `"mode": "protected"`, código con todos los derechos reservados, `relationships.requires` hacia la base en su `module.json` (ese `requires` sí va; el prohibido es el de `pf2e-baron-core`).
+- **El código de pago vive solo en el complemento.** Nada de funciones de pago escondidas en la base tras una bandera o un ajuste: el repo de la base es público y MIT.
+- **La base expone un registro de funciones** en su API pública, puesta en `init` (regla 12): por ejemplo `api.registerFeature(key, def)`. El complemento se registra desde su `setup` o `ready` con `game.modules.get("<id-de-la-base>")?.api`. La base consulta el registro cuando lo usa, no una sola vez al arrancar, para no depender del orden de carga. Esa API es un contrato con el complemento: no la rompas sin subir la versión mayor.
+- **Nunca imports entre los dos módulos** (regla 3): todo pasa por la API.
+- **El complemento guarda sus datos bajo su propio scope de flags** (su id) y sus propios ajustes; los datos de la base los lee con `doc.flags?.[idBase]?.[key]` (regla 6).
 
 ## Estilo
 
