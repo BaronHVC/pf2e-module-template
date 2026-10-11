@@ -346,6 +346,9 @@ for (const rel of listFiles(ROOT)) {
     // Left empty on purpose: only the author knows the page, and check-module
     // fails a protected module until it is filled.
     if (typeof config.landingUrl !== "string") config.landingUrl = "";
+    // A paid module never publishes the dev channel (module-release ignores
+    // the flag and says so on every release), so it should not claim one.
+    if (opts.mode === "protected") config.devChannel = false;
     text = JSON.stringify(config, null, 2) + "\n";
   }
   // Rewritten only when asked, so a module without --requires keeps the
@@ -400,6 +403,7 @@ if (mode === "protected") {
   lines.push(
     "Modo protected:",
     "  - El repo tiene que ser PRIVADO.",
+    "  - baron.json queda con \"devChannel\": false: un modulo de pago nunca publica el canal de pruebas dev.",
     // The private repo URL must never reach the published manifest, so the
     // protected build takes "url" from here and refuses to run without it.
     "  - Llena \"landingUrl\" en baron.json antes del primer release: una URL https publica del modulo, como",
