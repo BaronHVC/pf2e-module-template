@@ -1,7 +1,9 @@
 name: Release
 
 # Se dispara solo cuando publicas una etiqueta tipo v0.2.0 (estable) o
-# v0.2.0-rc.1 (prerelease + canal de pruebas).
+# v0.2.0-rc.1 (prerelease). En mode public las dos actualizan tambien el canal
+# de pruebas dev; en mode protected (modulo de pago) nunca, y una prerelease
+# no se sube a Foundry.
 on:
   push:
     tags:
