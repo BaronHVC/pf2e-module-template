@@ -18,4 +18,4 @@ jobs:
     if: github.repository != 'BaronHVC/pf2e-module-template'
     # El pin es el commit de baron-core.lock.json. No se edita a mano: sync-core
     # lo reescribe, y check-module falla si no coincide con el lock.
-    uses: BaronHVC/pf2e-baron-core/.github/workflows/module-release.yml@0000000000000000000000000000000000000000
+    uses: BaronHVC/pf2e-baron-core/.github/workflows/module-release.yml@8313f3017b4ce24a8ea8359890ae49f338645327
