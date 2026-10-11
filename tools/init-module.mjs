@@ -357,6 +357,10 @@ if (mode === "protected") {
     "Modo protected:",
     "  - El repo tiene que ser PRIVADO.",
     "  - El release protegido todavia no esta implementado: module-release.yml falla a proposito.",
+    // The inherited README says the module needs nothing else installed,
+    // which an add-on that requires its base contradicts.
+    "  - Si es el complemento de un freemium: agrega la base a relationships.requires de module.json",
+    "    y corrige en el README el resumen en ingles (\"it does not need any other module installed\") y la linea \"Requiere\".",
     ""
   );
 }
@@ -366,9 +370,10 @@ if (paizo === "orc") {
     "  - Rellena los corchetes de NOTICE.md (obras ORC usadas, Reserved Material) antes de publicar."
   );
   // The CUP lets a free project use Paizo's trademarks; the ORC never licenses
-  // them, free or paid, and the id cannot be renamed later.
-  if (/pf2e|pathfinder/i.test(`${id} ${opts.title}`)) {
-    lines.push("  - El id o el titulo usan PF2e/Pathfinder: la ORC nunca licencia marcas de Paizo, es una pregunta legal abierta y el id es para siempre (ver NOTICE.md).");
+  // them, free or paid, and the id cannot be renamed later. Same list as
+  // PAIZO_TRADEMARK_RE in pf2e-baron-core's check-module: keep them in sync.
+  if (/pf2|sf2e|pathfinder|starfinder|golarion|paizo/i.test(`${id} ${opts.title}`)) {
+    lines.push("  - El id o el titulo nombran a Paizo o uno de sus juegos (PF2e, Pathfinder, Starfinder, Golarion): la ORC nunca licencia marcas de Paizo, es una pregunta legal abierta y el id es para siempre (ver NOTICE.md).");
   }
   lines.push("");
 }
