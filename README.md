@@ -50,12 +50,12 @@ Son independientes: `--mode` dice cómo se distribuye el paquete (y con eso su `
 | Base gratuita de un freemium, o gratuito que prefiere ORC | `public` | `orc` | MIT | ORC License |
 | Complemento de pago | `protected` | `orc` (por defecto) | todos los derechos reservados | ORC License |
 
-`--mode protected --paizo cup` no existe: `init-module` lo rechaza sin escribir nada. Con `--paizo orc`, rellena los corchetes de `NOTICE.md` antes de publicar; y como la ORC nunca licencia marcas de Paizo, "PF2e" o "Pathfinder" en el id o el título es una pregunta legal abierta (el script lo avisa).
+`--mode protected --paizo cup` no existe: `init-module` lo rechaza sin escribir nada. Con `--paizo orc`, rellena los corchetes de `NOTICE.md` antes de publicar; y como la ORC nunca licencia marcas de Paizo, "PF2e", "Pathfinder" (o Starfinder, Golarion, Paizo) en el id o el título es una pregunta legal abierta (el script lo avisa). Por eso los ejemplos con ORC usan ids sin `pf2e`: el id es para siempre.
 
 ```
 node tools/init-module.mjs --id pf2e-baron-shop --title "Baron's Shop" --description "Una tienda para PF2e." --author BaronHVC --prefix bshop --mode public
-node tools/init-module.mjs --id pf2e-baron-shop --title "Baron's Shop" --description "Una tienda para PF2e." --author BaronHVC --prefix bshop --mode public --paizo orc
-node tools/init-module.mjs --id pf2e-baron-shop-plus --title "Baron's Shop Plus" --description "Funciones extra para Baron's Shop." --author BaronHVC --prefix bshplus --mode protected
+node tools/init-module.mjs --id baron-shop --title "Baron's Shop" --description "Una tienda para PF2e." --author BaronHVC --prefix bshop --mode public --paizo orc
+node tools/init-module.mjs --id baron-shop-plus --title "Baron's Shop Plus" --description "Funciones extra para Baron's Shop." --author BaronHVC --prefix bshplus --mode protected
 ```
 
 (Uno por caso de la tabla; cada uno en su propio repo.)
@@ -63,7 +63,7 @@ node tools/init-module.mjs --id pf2e-baron-shop-plus --title "Baron's Shop Plus"
 ### Freemium: base gratuita + complemento de pago
 
 - **Base:** repo público, `--mode public --paizo orc`, código MIT. Funciona **al 100 % sola**, con o sin el complemento.
-- **Complemento:** su propio repo **privado**, `--mode protected` (ORC por defecto), código con todos los derechos reservados. En su `module.json`, `relationships.requires` apunta a la base: `{ "id": "pf2e-baron-shop", "type": "module" }`.
+- **Complemento:** su propio repo **privado**, `--mode protected` (ORC por defecto), código con todos los derechos reservados. En su `module.json`, `relationships.requires` apunta a la base: `{ "id": "baron-shop", "type": "module" }`. En su README, corrige el resumen en inglés y la línea *Requiere*, que heredan "no necesita ningún otro módulo" (el script lo recuerda).
 - El código de pago vive **solo** en el complemento: nada de funciones de pago escondidas tras una bandera en el repo público.
 - La base expone en su `init` un registro de funciones en su API (`game.modules.get(id).api`); el complemento se registra ahí desde su `setup` o `ready`. Nunca un import entre los dos módulos.
 - El complemento guarda sus datos bajo su propio scope de flags (su id), no bajo el de la base.
@@ -135,7 +135,7 @@ node ../pf2e-baron-core/tools/check-module.mjs .
 node ../pf2e-baron-core/tools/check-module.mjs . --core-repo ../pf2e-baron-core --online
 ```
 
-Revisa que existan los archivos declarados en `module.json` y las plantillas que usan los scripts, la sintaxis de los scripts, los JSON, la paridad en/es, el lock contra la copia vendorizada (y, con `--online`, contra el repo del núcleo y el pin de los workflows), los imports, las claves de idioma, los identificadores persistidos de `baron.json` y que no queden placeholders. CI corre lo mismo en cada push.
+Revisa que existan los archivos declarados en `module.json` y las plantillas que usan los scripts, la sintaxis de los scripts, los JSON, la paridad en/es, el lock contra la copia vendorizada (y, con `--online`, contra el repo del núcleo y el pin de los workflows), los imports, las claves de idioma, los identificadores persistidos de `baron.json`, que no queden placeholders y que la licencia de Paizo de `baron.json` coincida con `NOTICE.md`. CI corre las mismas revisiones en cada push, pero con el `check-module` del commit del núcleo fijado en el lock: una revisión que el núcleo agregue después (como la de la licencia de Paizo, posterior a v1.0.0-rc.1) llega a la CI cuando resincronizas a una versión que la traiga.
 
 ## Publicar
 
@@ -154,7 +154,7 @@ Antes de etiquetar: `check-module` en verde, la versión de baron-core anotada e
 
 ## Licencia y avisos legales
 
-Los avisos sobre material de Paizo están en [NOTICE.md](NOTICE.md): revísalos antes de cada publicación y copia los avisos también a la descripción del paquete en foundryvtt.com (el ZIP del release no lleva `NOTICE.md`). Son dos ejes independientes de `baron.json`. `paizo` elige la licencia de Paizo: `cup` (Community Use Policy) solo para un módulo gratuito sin ninguna parte de pago; `orc` (ORC License) para un paquete de pago y también para la base gratuita de un freemium, porque la Community Use Policy prohíbe cualquier muro de pago en el proyecto. `mode` elige la licencia del código, en [LICENSE](LICENSE), que escribe `init-module`: **MIT** para `public` y **todos los derechos reservados** para `protected`, a nombre de `--author`. En los dos casos `scripts/baron-core.js` sigue siendo MIT, la licencia de [pf2e-baron-core](https://github.com/BaronHVC/pf2e-baron-core). La licencia cubre solo el código: el material de Paizo va con los avisos de `NOTICE.md`. Si cambias `paizo`, cambia `NOTICE.md` en el mismo commit (`check-module` revisa que coincidan).
+Los avisos sobre material de Paizo están en [NOTICE.md](NOTICE.md): revísalos antes de cada publicación y copia los avisos también a la descripción del paquete en foundryvtt.com (el ZIP del release no lleva `NOTICE.md`). Son dos ejes independientes de `baron.json`. `paizo` elige la licencia de Paizo: `cup` (Community Use Policy) solo para un módulo gratuito sin ninguna parte de pago; `orc` (ORC License) para un paquete de pago y también para la base gratuita de un freemium, porque la Community Use Policy prohíbe cualquier muro de pago en el proyecto. `mode` elige la licencia del código, en [LICENSE](LICENSE), que escribe `init-module`: **MIT** para `public` y **todos los derechos reservados** para `protected`, a nombre de `--author`. En los dos casos `scripts/baron-core.js` sigue siendo MIT, la licencia de [pf2e-baron-core](https://github.com/BaronHVC/pf2e-baron-core). La licencia cubre solo el código: el material de Paizo va con los avisos de `NOTICE.md`. Si cambias `paizo`, reemplaza `NOTICE.md` entero en el mismo commit: corre `tools/init-module.mjs` con el `--paizo` nuevo y los mismos id, título, descripción, autor y prefijo en un clon aparte de pf2e-module-template, y copia su `NOTICE.md`. No pegues el bloque nuevo junto al viejo: un módulo bajo una licencia no puede mostrar el aviso de la otra. `check-module` revisa que coincidan (la CI, cuando el lock apunte a un núcleo con esa revisión).
 
 ## Reglas de la familia (resumen)
 

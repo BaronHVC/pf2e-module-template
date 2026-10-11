@@ -9,7 +9,7 @@ Módulo de Foundry VTT (v13–v14) para el sistema PF2e, de la familia BaronHVC.
 
 - Id / scope de flags / namespace de ajustes / prefijo de idioma: `__MODULE_ID__` (`MODULE_ID` en `scripts/main.js`).
 - Prefijo CSS y de clases: `__PREFIX__` (raíz de las ventanas: `.__PREFIX__-app`; botón de cabecera: `.__PREFIX__-open`).
-- `baron.json`: configuración de CI y dos ejes independientes. `mode` (`public` | `protected`) es cómo se distribuye y decide `LICENSE` (MIT | todos los derechos reservados). `paizo` (`cup` | `orc`) es la licencia de Paizo del material del juego y decide el bloque de `NOTICE.md`. `protected` + `cup` está prohibido: la Community Use Policy no admite ningún muro de pago en el proyecto. Si cambias `paizo`, cambia `NOTICE.md` en el mismo commit; check-module revisa que coincidan.
+- `baron.json`: configuración de CI y dos ejes independientes. `mode` (`public` | `protected`) es cómo se distribuye y decide `LICENSE` (MIT | todos los derechos reservados). `paizo` (`cup` | `orc`) es la licencia de Paizo del material del juego y decide el bloque de `NOTICE.md`. `protected` + `cup` está prohibido: la Community Use Policy no admite ningún muro de pago en el proyecto. Si cambias `paizo`, reemplaza `NOTICE.md` entero en el mismo commit por el que escribe `tools/init-module.mjs` con el `--paizo` nuevo en un clon aparte de la plantilla (mismos id, título, descripción, autor y prefijo): nunca dejes los dos avisos. La revisión `[l]` de check-module revisa que coincidan; la CI la corre solo cuando `baron-core.lock.json` apunta a un núcleo que la trae (posterior a v1.0.0-rc.1).
 
 ## Reglas de la familia
 
@@ -32,7 +32,7 @@ Módulo de Foundry VTT (v13–v14) para el sistema PF2e, de la familia BaronHVC.
 Un proyecto con parte de pago son dos módulos, y **los dos** van con `"paizo": "orc"`:
 
 - **Base:** repo público, `"mode": "public"`, código MIT. Funciona al 100 % sola: ninguna función suya depende de que el complemento esté instalado.
-- **Complemento:** repo privado, `"mode": "protected"`, código con todos los derechos reservados, `relationships.requires` hacia la base en su `module.json` (ese `requires` sí va; el prohibido es el de `pf2e-baron-core`).
+- **Complemento:** repo privado, `"mode": "protected"`, código con todos los derechos reservados, `relationships.requires` hacia la base en su `module.json` (ese `requires` sí va; el prohibido es el de `pf2e-baron-core`). Corrige también su README: el resumen en inglés y la línea *Requiere* heredados dicen que no necesita otro módulo.
 - **El código de pago vive solo en el complemento.** Nada de funciones de pago escondidas en la base tras una bandera o un ajuste: el repo de la base es público y MIT.
 - **La base expone un registro de funciones** en su API pública, puesta en `init` (regla 12): por ejemplo `api.registerFeature(key, def)`. El complemento se registra desde su `setup` o `ready` con `game.modules.get("<id-de-la-base>")?.api`. La base consulta el registro cuando lo usa, no una sola vez al arrancar, para no depender del orden de carga. Esa API es un contrato con el complemento: no la rompas sin subir la versión mayor.
 - **Nunca imports entre los dos módulos** (regla 3): todo pasa por la API.
