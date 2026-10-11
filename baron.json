@@ -1,6 +1,7 @@
 {
   "mode": "public",
   "paizo": "cup",
+  "landingUrl": "",
   "devChannel": true,
   "i18nPrefix": "__MODULE_ID__",
   "langParity": "error",

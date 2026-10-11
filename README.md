@@ -28,8 +28,9 @@ Plantilla para los módulos nuevos de la familia BaronHVC para PF2e. Todo lo que
    - `--id`: minúsculas, dígitos y guiones. Es el id del manifiesto, el scope de los flags, el namespace de los ajustes y el prefijo de idioma, **para siempre**.
    - `--prefix`: prefijo corto para CSS y clases (empieza con letra, 2 a 12 letras o dígitos): `bshop` da `.bshop-app` y `.bshop-open`.
    - `--mode` y `--paizo`: cómo se distribuye y qué licencia de Paizo cubre el material del juego (ver *Las dos decisiones*, abajo). `--paizo` es opcional.
+   - `--requires` (opcional, una sola vez): id del módulo sin el que este no funciona; lo escribe en `relationships.requires` de `module.json`. Un complemento de pago lleva aquí su base (ver *Crear un complemento de pago*). Nunca `pf2e-baron-core`, que va vendorizado.
 
-   El script reemplaza los placeholders, escribe `mode` y `paizo` en `baron.json`, deja en `NOTICE.md` solo el bloque de la licencia de Paizo elegida, escribe `LICENSE` según el modo, quita esta sección del README y se borra a sí mismo. Si encuentra `../pf2e-baron-core/REGISTRY.md`, rechaza un id o un prefijo que ya estén registrados; avisa si la carpeta o el remoto `origin` no se llaman como el id (las URLs del README y de `module.json` usan el id). Al final imprime la fila para `REGISTRY.md` de `pf2e-baron-core`: un módulo **gratuito** la registra ya, antes de escribir código; uno **de pago**, solo cuando se publique (ese repo es público).
+   El script reemplaza los placeholders, escribe `mode` y `paizo` en `baron.json` (con `"landingUrl": ""`, que un módulo de pago llena antes de su primer release), deja en `NOTICE.md` solo el bloque de la licencia de Paizo elegida, escribe `LICENSE` según el modo, quita esta sección del README y se borra a sí mismo. Si encuentra `../pf2e-baron-core/REGISTRY.md`, rechaza un id o un prefijo que ya estén registrados; avisa si la carpeta o el remoto `origin` no se llaman como el id (las URLs del README y de `module.json` usan el id). Al final imprime la fila para `REGISTRY.md` de `pf2e-baron-core`: un módulo **gratuito** la registra ya, antes de escribir código; uno **de pago**, solo cuando se publique (ese repo es público).
 3. Enlázalo con Foundry: `powershell -NoProfile -ExecutionPolicy Bypass -File tools/link-foundry.ps1` (detalles abajo, en *Desarrollo*).
 4. Abre Foundry, entra a un mundo con el sistema PF2e y activa el módulo en **Manage Modules**.
 5. Haz el primer commit y súbelo (comandos separados: Windows PowerShell 5.1 no acepta `&&`):
@@ -55,7 +56,7 @@ Son independientes: `--mode` dice cómo se distribuye el paquete (y con eso su `
 ```
 node tools/init-module.mjs --id pf2e-baron-shop --title "Baron's Shop" --description "Una tienda para PF2e." --author BaronHVC --prefix bshop --mode public
 node tools/init-module.mjs --id baron-shop --title "Baron's Shop" --description "Una tienda para PF2e." --author BaronHVC --prefix bshop --mode public --paizo orc
-node tools/init-module.mjs --id baron-shop-plus --title "Baron's Shop Plus" --description "Funciones extra para Baron's Shop." --author BaronHVC --prefix bshplus --mode protected
+node tools/init-module.mjs --id baron-shop-plus --title "Baron's Shop Plus" --description "Funciones extra para Baron's Shop." --author BaronHVC --prefix bshplus --mode protected --requires baron-shop
 ```
 
 (Uno por caso de la tabla; cada uno en su propio repo.)
@@ -63,12 +64,30 @@ node tools/init-module.mjs --id baron-shop-plus --title "Baron's Shop Plus" --de
 ### Freemium: base gratuita + complemento de pago
 
 - **Base:** repo público, `--mode public --paizo orc`, código MIT. Funciona **al 100 % sola**, con o sin el complemento.
-- **Complemento:** su propio repo **privado**, `--mode protected` (ORC por defecto), código con todos los derechos reservados. En su `module.json`, `relationships.requires` apunta a la base: `{ "id": "baron-shop", "type": "module" }`. En su README, corrige el resumen en inglés y la línea *Requiere*, que heredan "no necesita ningún otro módulo" (el script lo recuerda).
+- **Complemento:** su propio repo **privado**, `--mode protected` (ORC por defecto), código con todos los derechos reservados. En su `module.json`, `relationships.requires` apunta a la base: `--requires baron-shop` escribe `{ "id": "baron-shop", "type": "module", "compatibility": {} }` (sin `--requires`, el script avisa). En su README, corrige el resumen en inglés y la línea *Requiere*, que heredan "no necesita ningún otro módulo" (el script lo recuerda).
 - El código de pago vive **solo** en el complemento: nada de funciones de pago escondidas tras una bandera en el repo público.
 - La base expone en su `init` un registro de funciones en su API (`game.modules.get(id).api`); el complemento se registra ahí desde su `setup` o `ready`. Nunca un import entre los dos módulos.
 - El complemento guarda sus datos bajo su propio scope de flags (su id), no bajo el de la base.
 
 Las reglas de código están en `CLAUDE.md` (sección *Freemium*), que hereda cada módulo.
+
+### Crear un complemento de pago
+
+Requisito previo, una sola vez: aceptar el **Premium Content Agreement** de Foundry en tu cuenta de creador de foundryvtt.com.
+
+1. **Use this template → Create a new repository**, con el repo **privado** y el id del complemento como nombre (por ejemplo `baron-shop-plus`).
+2. Inicialízalo como complemento de su base:
+
+   ```
+   node tools/init-module.mjs --id baron-shop-plus --title "Baron's Shop Plus" --description "Funciones extra para Baron's Shop." --author BaronHVC --prefix bshplus --mode protected --requires baron-shop
+   ```
+
+3. Llena `"landingUrl"` en `baron.json` con una URL `https` pública del módulo (la página del paquete, `https://foundryvtt.com/packages/<id>`, o tu Patreon): el manifiesto protegido la usa como `url`, porque la del repo privado no puede publicarse, y `check-module` falla mientras esté vacía. Rellena los corchetes de `NOTICE.md` (ORC) y corrige en el README el resumen en inglés, la línea *Requiere* y la sección *Instalación*.
+4. Escribe el código: el complemento registra sus funciones en la API de la base desde su `setup` o `ready` (`game.modules.get("baron-shop")?.api`), nunca con un import.
+5. Etiqueta (`git tag v0.1.0` y luego `git push origin v0.1.0`). La CI arma el ZIP protegido (`"protected": true`, sin `download`, manifiesto alojado por Foundry) y lo publica como release **del repo privado**; nunca toca el canal `dev`.
+6. A mano, con la lista que deja el resumen del workflow: descarga el ZIP de ese release, súbelo en https://foundryvtt.com/creators/upload al paquete `<id>` con su versión y compatibilidad (la primera versión espera la aprobación de Foundry), elige los niveles de Patreon en la página del paquete y prueba la instalación desde una cuenta de mecenas. Los mecenas obtienen acceso al vincular su Patreon en su perfil de foundryvtt.com.
+
+El paso 5 necesita un baron-core posterior a v1.0.0 (resincroniza con `sync-core`): con v1.0.0, `module-release.yml` falla a propósito en modo protegido.
 
 Todo lo que sigue a esta sección es el README que hereda el módulo.
 <!-- baron:template-only:end -->
@@ -135,7 +154,7 @@ node ../pf2e-baron-core/tools/check-module.mjs .
 node ../pf2e-baron-core/tools/check-module.mjs . --core-repo ../pf2e-baron-core --online
 ```
 
-Revisa que existan los archivos declarados en `module.json` y las plantillas que usan los scripts, la sintaxis de los scripts, los JSON, la paridad en/es, el lock contra la copia vendorizada (y, con `--online`, contra el repo del núcleo y el pin de los workflows), los imports, las claves de idioma, los identificadores persistidos de `baron.json`, que no queden placeholders y que la licencia de Paizo de `baron.json` coincida con `NOTICE.md`. CI corre las mismas revisiones en cada push, pero con el `check-module` del commit del núcleo fijado en el lock: una revisión que el núcleo agregue después (como la de la licencia de Paizo, posterior a v1.0.0-rc.1) llega a la CI cuando resincronizas a una versión que la traiga.
+Revisa que existan los archivos declarados en `module.json` y las plantillas que usan los scripts, la sintaxis de los scripts, los JSON, la paridad en/es, el lock contra la copia vendorizada (y, con `--online`, contra el repo del núcleo y el pin de los workflows), los imports, las claves de idioma, los identificadores persistidos de `baron.json`, que no queden placeholders, que la licencia de Paizo de `baron.json` coincida con `NOTICE.md` y, en un módulo de pago, que `"landingUrl"` sea una URL `https` y que `module.json` requiera su base. CI corre las mismas revisiones en cada push, pero con el `check-module` del commit del núcleo fijado en el lock: una revisión que el núcleo agregue después (como la de la licencia de Paizo, posterior a v1.0.0-rc.1) llega a la CI cuando resincronizas a una versión que la traiga.
 
 ## Publicar
 
@@ -148,7 +167,7 @@ Son dos comandos separados a propósito: Windows PowerShell 5.1 no acepta `&&` (
 
 El workflow `.github/workflows/release.yml` solo llama a `module-release.yml` de `pf2e-baron-core`, fijado al commit del lock. Ese pipeline corre `check-module`, reescribe `module.json`, arma `__MODULE_ID__-<etiqueta>.zip` con la carpeta `__MODULE_ID__/` (solo `module.json`, `scripts`, `styles`, `templates`, `lang` y `packs`, los que existan) y lo publica en GitHub Releases. El canal `dev` usa la versión numérica `X.Y.Z.<número de corrida>` porque Foundry compara mal sufijos como `-rc10` contra `-rc9`.
 
-Con `"mode": "protected"` en `baron.json` el release falla a propósito: el modo protegido (paquetes de pago alojados por Foundry) todavía no está implementado.
+Con `"mode": "protected"` en `baron.json` (paquete de pago alojado por Foundry), el pipeline exige que el repo sea privado y reescribe `module.json` para Foundry: `"protected": true`, sin `download`, el manifiesto `https://r2.foundryvtt.com/packages-public/__MODULE_ID__/module.json` y, como `url`, el `"landingUrl"` de `baron.json`. Falla si queda cualquier URL de `github.com`, para que el repo privado nunca aparezca en un manifiesto publicado. Publica el ZIP y ese `module.json` como release **de este repo privado** y nunca toca el canal `dev`: en un repo privado nadie podría descargarlo, y en uno público regalaría el paquete. La subida a Foundry es a mano, con la lista que deja el resumen del workflow: descarga el ZIP del release, súbelo en https://foundryvtt.com/creators/upload al paquete `__MODULE_ID__` con su versión y compatibilidad (la primera versión espera la aprobación de Foundry), elige los niveles de Patreon en la página del paquete y prueba la instalación desde una cuenta de mecenas (los mecenas vinculan su Patreon en su perfil de foundryvtt.com). Requisito previo, una sola vez: el Premium Content Agreement de Foundry. Todo esto llega con un baron-core posterior a v1.0.0 (resincroniza con `sync-core`); con v1.0.0, el release protegido falla a propósito.
 
 Antes de etiquetar: `check-module` en verde, la versión de baron-core anotada en `CHANGELOG.md`, y los arreglos de comportamiento en su propio release.
 

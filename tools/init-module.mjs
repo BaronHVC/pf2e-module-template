@@ -7,11 +7,15 @@
 //
 //   node tools/init-module.mjs --id <id> --title <title> --description <text>
 //     --author <name> --prefix <prefix> --mode public|protected [--paizo cup|orc]
+//     [--requires <module-id>]
 //
 // Mode and Paizo license are separate axes because the license follows the
 // whole project, not the price of each package: the free base of a freemium
 // pair is public yet must use ORC, since the Community Use Policy forbids any
 // paywall anywhere in the project.
+//
+// --requires names the one module this one cannot work without, typically the
+// free base of a paid add-on; it lands in module.json relationships.requires.
 //
 // Node built-ins only, so it runs right after cloning, with nothing installed.
 
@@ -26,9 +30,12 @@ const ROOT = path.dirname(path.dirname(SELF));
 // (the layout the README asks for).
 const REGISTRY = path.join(ROOT, "..", "pf2e-baron-core", "REGISTRY.md");
 
-const FLAGS = ["id", "title", "description", "author", "prefix", "mode", "paizo"];
-// --paizo has a default that depends on --mode, so it is the only optional one.
-const OPTIONAL = new Set(["paizo"]);
+const FLAGS = ["id", "title", "description", "author", "prefix", "mode", "paizo", "requires"];
+// --paizo has a default that depends on --mode; --requires defaults to no
+// module dependency at all.
+const OPTIONAL = new Set(["paizo", "requires"]);
+// The id pattern that --id and --requires share.
+const MODULE_ID_RE = /^[a-z0-9-]+$/;
 const MODES = ["public", "protected"];
 const PAIZO = ["cup", "orc"];
 // Same pattern as check-module's leftover-placeholder rule, so whatever this
@@ -97,6 +104,7 @@ function licenseFor(opts, year) {
 const USAGE = `Uso:
   node tools/init-module.mjs --id <id> --title <titulo> --description <texto>
     --author <autor> --prefix <prefijo> --mode public|protected [--paizo cup|orc]
+    [--requires <id-de-modulo>]
 
   --id           id del modulo: minusculas, digitos y guiones (pf2e-baron-shop)
   --title        titulo visible (Baron's Shop)
@@ -109,7 +117,10 @@ const USAGE = `Uso:
                  cup (Community Use Policy) | orc (ORC License).
                  Opcional: cup con --mode public, orc con --mode protected.
                  protected + cup no se permite: la CUP prohibe cualquier muro de pago.
-                 La base gratuita de un freemium usa --mode public --paizo orc.`;
+                 La base gratuita de un freemium usa --mode public --paizo orc.
+  --requires     opcional, una sola vez: id del modulo sin el que este no funciona (mismas reglas que --id).
+                 Va a relationships.requires de module.json. Un complemento de pago (--mode protected)
+                 lleva aqui su base gratuita: --requires baron-shop. Nunca pf2e-baron-core: va vendorizado.`;
 
 function fail(message) {
   console.error(`init-module: ${message}`);
@@ -140,8 +151,19 @@ function parseArgs(argv) {
 function validate(opts) {
   const missing = FLAGS.filter((f) => !OPTIONAL.has(f) && !opts[f]);
   if (missing.length) fail(`faltan: ${missing.map((f) => "--" + f).join(", ")}\n\n${USAGE}`);
-  if (!/^[a-z0-9-]+$/.test(opts.id)) fail(`--id invalido "${opts.id}": solo minusculas, digitos y guiones`);
+  if (!MODULE_ID_RE.test(opts.id)) fail(`--id invalido "${opts.id}": solo minusculas, digitos y guiones`);
   if (opts.id === "pf2e-module-template") fail("--id no puede ser el de la plantilla");
+  // Checked against undefined like --paizo: an empty --requires= is a typo.
+  if (opts.requires !== undefined) {
+    const req = opts.requires;
+    if (!MODULE_ID_RE.test(req)) fail(`--requires invalido "${req}": solo minusculas, digitos y guiones`);
+    if (req === "pf2e-baron-core") {
+      fail("--requires no puede ser pf2e-baron-core: el nucleo va vendorizado en scripts/baron-core.js, nunca como dependencia de Foundry");
+    }
+    if (req === "pf2e-module-template") fail("--requires no puede ser el de la plantilla");
+    if (req === "pf2e") fail("--requires pf2e no: pf2e es el sistema y ya va en relationships.systems");
+    if (req === opts.id) fail("--requires no puede ser el mismo --id");
+  }
   if (!/^[a-z][a-z0-9]{1,11}$/.test(opts.prefix)) {
     fail(`--prefix invalido "${opts.prefix}": empieza con letra y lleva de 2 a 12 minusculas o digitos`);
   }
@@ -294,6 +316,11 @@ const origin = originRepoName();
 if (origin && origin !== opts.id) {
   warnings.push(`el remoto origin apunta al repo "${origin}", no a "${opts.id}": renombra el repo en GitHub o usa --id ${origin}.`);
 }
+// Not an error: a standalone paid module is possible, but the family's paid
+// packages are freemium add-ons that only work with their free base.
+if (opts.mode === "protected" && opts.requires === undefined) {
+  warnings.push("--mode protected sin --requires: un complemento de pago de un freemium tiene que requerir su base gratuita. Agregala a relationships.requires de module.json: { \"id\": \"<id-de-la-base>\", \"type\": \"module\", \"compatibility\": {} }.");
+}
 
 // Everything is computed and checked in memory first: a bad template file
 // aborts the run before a single file is written, so it can simply be rerun.
@@ -316,7 +343,20 @@ for (const rel of listFiles(ROOT)) {
     const config = JSON.parse(stripBom(text));
     config.mode = opts.mode;
     config.paizo = opts.paizo;
+    // Left empty on purpose: only the author knows the page, and check-module
+    // fails a protected module until it is filled.
+    if (typeof config.landingUrl !== "string") config.landingUrl = "";
     text = JSON.stringify(config, null, 2) + "\n";
+  }
+  // Rewritten only when asked, so a module without --requires keeps the
+  // template's module.json byte for byte.
+  if (rel === "module.json" && opts.requires !== undefined) {
+    const mod = JSON.parse(stripBom(text));
+    mod.relationships = {
+      ...mod.relationships,
+      requires: [{ id: opts.requires, type: "module", compatibility: {} }]
+    };
+    text = JSON.stringify(mod, null, 2) + "\n";
   }
   if (ext === ".json") {
     try {
@@ -348,21 +388,33 @@ const lines = [
   `  modo:     ${mode} (${mode === "public" ? "repo publico, release normal" : "repo privado, paquete protegido de pago"}; baron.json "mode")`,
   `  paizo:    ${paizo} (${paizo === "cup" ? "aviso de la Community Use Policy" : "avisos de la ORC License"} en NOTICE.md; baron.json "paizo")`,
   `  licencia: ${mode === "public" ? "MIT" : "todos los derechos reservados (baron-core.js sigue MIT)"}, a nombre de ${opts.author}`,
+  `  requiere: ${opts.requires ?? "ningun modulo"} (module.json relationships.requires)`,
   `  archivos actualizados: ${writes.size}`,
   "  tools/init-module.mjs se borro a si mismo.",
   ""
 ];
+// The inherited README says the module needs nothing else installed, which a
+// module that requires another contradicts.
+const readmeFix = "corrige en el README el resumen en ingles (\"it does not need any other module installed\") y la linea \"Requiere\".";
 if (mode === "protected") {
   lines.push(
     "Modo protected:",
     "  - El repo tiene que ser PRIVADO.",
-    "  - El release protegido todavia no esta implementado: module-release.yml falla a proposito.",
-    // The inherited README says the module needs nothing else installed,
-    // which an add-on that requires its base contradicts.
-    "  - Si es el complemento de un freemium: agrega la base a relationships.requires de module.json",
-    "    y corrige en el README el resumen en ingles (\"it does not need any other module installed\") y la linea \"Requiere\".",
+    // The private repo URL must never reach the published manifest, so the
+    // protected build takes "url" from here and refuses to run without it.
+    "  - Llena \"landingUrl\" en baron.json antes del primer release: una URL https publica del modulo, como",
+    `    https://foundryvtt.com/packages/${id} o tu pagina de Patreon. El manifiesto protegido la usa como "url",`,
+    "    porque la del repo privado no puede publicarse. check-module (regla [m], posterior a v1.0.0) falla mientras este vacia.",
+    "  - El release protegido lo arma module-release.yml de un baron-core posterior a v1.0.0 (resincroniza con sync-core;",
+    "    con v1.0.0 falla a proposito). Subir el ZIP a foundryvtt.com y elegir los niveles de Patreon es a mano:",
+    "    ver \"Publicar\" en el README.",
+    "  - Corrige en el README la seccion \"Instalacion\": un paquete protegido no se instala con las URLs de GitHub.",
+    ...(opts.requires === undefined ? [`  - Cuando agregues la base a relationships.requires, ${readmeFix}`] : []),
     ""
   );
+}
+if (opts.requires !== undefined) {
+  lines.push(`Requiere ${opts.requires}:`, `  - module.json ya lo lista en relationships.requires; ${readmeFix}`, "");
 }
 if (paizo === "orc") {
   lines.push(
@@ -390,8 +442,13 @@ lines.push(
   // One command per line: Windows PowerShell 5.1 rejects "&&".
   "Siguientes pasos:",
   "  1. powershell -NoProfile -ExecutionPolicy Bypass -File tools/link-foundry.ps1",
-  "  2. Activa el modulo en un mundo con PF2e.",
-  "  3. node ../pf2e-baron-core/tools/check-module.mjs .",
+  // Foundry refuses to enable a module whose requires are not installed.
+  opts.requires === undefined
+    ? "  2. Activa el modulo en un mundo con PF2e."
+    : `  2. Instala ${opts.requires} y activa los dos modulos en un mundo con PF2e.`,
+  mode === "protected"
+    ? "  3. node ../pf2e-baron-core/tools/check-module.mjs .   (con \"landingUrl\" ya lleno en baron.json)"
+    : "  3. node ../pf2e-baron-core/tools/check-module.mjs .",
   "  4. git add -A",
   `     git commit -m "Initialize ${id} from pf2e-module-template"`,
   "     git push"

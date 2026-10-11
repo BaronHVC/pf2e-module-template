@@ -9,7 +9,7 @@ Módulo de Foundry VTT (v13–v14) para el sistema PF2e, de la familia BaronHVC.
 
 - Id / scope de flags / namespace de ajustes / prefijo de idioma: `__MODULE_ID__` (`MODULE_ID` en `scripts/main.js`).
 - Prefijo CSS y de clases: `__PREFIX__` (raíz de las ventanas: `.__PREFIX__-app`; botón de cabecera: `.__PREFIX__-open`).
-- `baron.json`: configuración de CI y dos ejes independientes. `mode` (`public` | `protected`) es cómo se distribuye y decide `LICENSE` (MIT | todos los derechos reservados). `paizo` (`cup` | `orc`) es la licencia de Paizo del material del juego y decide el bloque de `NOTICE.md`. `protected` + `cup` está prohibido: la Community Use Policy no admite ningún muro de pago en el proyecto. Si cambias `paizo`, reemplaza `NOTICE.md` entero en el mismo commit por el que escribe `tools/init-module.mjs` con el `--paizo` nuevo en un clon aparte de la plantilla (mismos id, título, descripción, autor y prefijo): nunca dejes los dos avisos. La revisión `[l]` de check-module revisa que coincidan; la CI la corre solo cuando `baron-core.lock.json` apunta a un núcleo que la trae (posterior a v1.0.0-rc.1).
+- `baron.json`: configuración de CI y dos ejes independientes. `mode` (`public` | `protected`) es cómo se distribuye y decide `LICENSE` (MIT | todos los derechos reservados). `paizo` (`cup` | `orc`) es la licencia de Paizo del material del juego y decide el bloque de `NOTICE.md`. `protected` + `cup` está prohibido: la Community Use Policy no admite ningún muro de pago en el proyecto. Si cambias `paizo`, reemplaza `NOTICE.md` entero en el mismo commit por el que escribe `tools/init-module.mjs` con el `--paizo` nuevo en un clon aparte de la plantilla (mismos id, título, descripción, autor y prefijo): nunca dejes los dos avisos. La revisión `[l]` de check-module revisa que coincidan; la CI la corre solo cuando `baron-core.lock.json` apunta a un núcleo que la trae (posterior a v1.0.0-rc.1). `landingUrl` es la URL `https` pública del módulo: vacía en uno `public`, obligatoria en uno `protected`, porque el manifiesto protegido la usa como `url` y el del repo privado no puede publicarse (revisión `[m]`, posterior a v1.0.0).
 
 ## Reglas de la familia
 
@@ -42,6 +42,17 @@ Un proyecto con parte de pago son dos módulos, y **los dos** van con `"paizo": 
 - **La base expone un registro de funciones** en su API pública, puesta en `init` (regla 12): por ejemplo `api.registerFeature(key, def)`. El complemento se registra desde su `setup` o `ready` con `game.modules.get("<id-de-la-base>")?.api`. La base consulta el registro cuando lo usa, no una sola vez al arrancar, para no depender del orden de carga. Esa API es un contrato con el complemento: no la rompas sin subir la versión mayor.
 - **Nunca imports entre los dos módulos** (regla 3): todo pasa por la API.
 - **El complemento guarda sus datos bajo su propio scope de flags** (su id) y sus propios ajustes; los datos de la base los lee con `doc.flags?.[idBase]?.[key]` (regla 6).
+
+### Crear un complemento de pago
+
+Requisito del autor, una sola vez: el Premium Content Agreement de Foundry.
+
+1. *Use this template* hacia un repo **privado** con el id del complemento.
+2. `node tools/init-module.mjs ... --mode protected --requires <id-de-la-base>` (escribe la base en `relationships.requires`).
+3. Llena `"landingUrl"` en `baron.json` y los corchetes de la ORC en `NOTICE.md`; corrige el README (resumen en inglés, *Requiere*, *Instalación*).
+4. El complemento registra sus funciones en la API de la base desde su `setup` o `ready`, nunca con un import.
+5. Etiqueta: la CI (baron-core posterior a v1.0.0) arma el ZIP protegido y lo publica como release del repo privado; nunca el canal `dev`.
+6. A mano: sube el ZIP en https://foundryvtt.com/creators/upload (la primera versión espera aprobación), elige los niveles de Patreon en la página del paquete y prueba la instalación desde una cuenta de mecenas.
 
 ## Estilo
 
