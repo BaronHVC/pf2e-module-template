@@ -163,6 +163,8 @@ Con `--release`, un texto que todavía empieza con `TODO-HUMANO:` en `lang/*.jso
 
 Revisa que existan los archivos declarados en `module.json` y las plantillas que usan los scripts, la sintaxis de los scripts, los JSON, la paridad en/es, el lock contra la copia vendorizada (y, con `--online`, contra el repo del núcleo y el pin de los workflows), los imports, las claves de idioma, los identificadores persistidos de `baron.json`, que no queden placeholders, que la licencia de Paizo de `baron.json` coincida con `NOTICE.md` y, en un módulo de pago, que `"landingUrl"` sea una URL `https` y que `module.json` requiera su base. CI corre las mismas revisiones en cada push, pero con el `check-module` del commit del núcleo fijado en el lock: una revisión que el núcleo agregue después (como la de la licencia de Paizo, posterior a v1.0.0-rc.1) llega a la CI cuando resincronizas a una versión que la traiga.
 
+Las pruebas de `test/*.test.mjs` corren en la CI en cada push y en cada release, y una prueba roja no deja publicar la etiqueta (con un núcleo posterior a v1.3.0; también `tests/`, subcarpetas y `.test.js`, o `npm test` si `package.json` tiene un script `test`): córrelas antes con `node --test test/*.test.mjs`.
+
 ## Publicar
 
 La versión la pone la **etiqueta**: el `version`, `manifest` y `download` de `module.json` en el repo no importan, el pipeline los reescribe.
