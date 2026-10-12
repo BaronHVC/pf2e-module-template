@@ -153,9 +153,13 @@ Copia el archivo del árbol de trabajo del núcleo en cada cambio (Ctrl+C para s
 ### Revisar antes de cada commit y cada etiqueta
 
 ```
+# antes de cada commit
 node ../pf2e-baron-core/tools/check-module.mjs .
-node ../pf2e-baron-core/tools/check-module.mjs . --core-repo ../pf2e-baron-core --online
+# antes de cada etiqueta: lo mismo que corre la CI del release
+node ../pf2e-baron-core/tools/check-module.mjs . --core-repo ../pf2e-baron-core --online --release
 ```
+
+Con `--release`, un texto que todavía empieza con `TODO-HUMANO:` en `lang/*.json` o en el título o la descripción de `module.json` falla en vez de solo avisar (regla 15 del CLAUDE.md: los textos que ve el usuario los escribe una persona, por la política de IA de Foundry).
 
 Revisa que existan los archivos declarados en `module.json` y las plantillas que usan los scripts, la sintaxis de los scripts, los JSON, la paridad en/es, el lock contra la copia vendorizada (y, con `--online`, contra el repo del núcleo y el pin de los workflows), los imports, las claves de idioma, los identificadores persistidos de `baron.json`, que no queden placeholders, que la licencia de Paizo de `baron.json` coincida con `NOTICE.md` y, en un módulo de pago, que `"landingUrl"` sea una URL `https` y que `module.json` requiera su base. CI corre las mismas revisiones en cada push, pero con el `check-module` del commit del núcleo fijado en el lock: una revisión que el núcleo agregue después (como la de la licencia de Paizo, posterior a v1.0.0-rc.1) llega a la CI cuando resincronizas a una versión que la traiga.
 
