@@ -31,6 +31,7 @@ Módulo de Foundry VTT (v13–v14) para el sistema PF2e, de la familia BaronHVC.
     - Si no existe, hazlo a mano: instala en el dueño real del método (sube por la cadena con `hasOwnProperty`), guarda el original, **llámalo siempre** (`orig.call(this, ...args)`) y marca el dueño con una bandera propia del módulo (`_<prefijo>Wrapped<Metodo>`) para no instalarlo dos veces.
     - Regístralo en `setup` o después, cuando el sistema y lib-wrapper ya cargaron. Nunca uses `"OVERRIDE"` ni un reemplazo que no llame al original.
     - Antes de envolver un método, revisa la columna «Envuelve» de `REGISTRY.md` en `pf2e-baron-core`: si otro módulo de la familia ya lo envuelve, coordínalo. Anota ahí cada método que envuelvas.
+15. **Textos humanos (política de IA de Foundry):** nunca escribas valores de `lang/*.json`, texto de chat, la descripción de `module.json` ni texto del listado. Agrega la clave con el valor `TODO-HUMANO: <qué debe decir>` (en `en.json` y en `es.json`, para que la paridad de la regla 9 se mantenga) y BaronHVC la llena. Sí puedes traducir al otro idioma un texto que él escribió, siempre que él lo revise. La revisión `[n]` de check-module avisa en cada push de todo valor de `lang/*.json`, `title` o `description` de `module.json` que empiece con `TODO-HUMANO:`, y el release de la etiqueta (`--release`) falla; la CI la corre solo cuando `baron-core.lock.json` apunta a un núcleo que la trae (posterior a v1.1.1).
 
 ## Freemium (base gratuita + complemento de pago)
 
