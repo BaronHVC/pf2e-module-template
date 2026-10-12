@@ -32,6 +32,10 @@ Módulo de Foundry VTT (v13–v14) para el sistema PF2e, de la familia BaronHVC.
     - Regístralo en `setup` o después, cuando el sistema y lib-wrapper ya cargaron. Nunca uses `"OVERRIDE"` ni un reemplazo que no llame al original.
     - Antes de envolver un método, revisa la columna «Envuelve» de `REGISTRY.md` en `pf2e-baron-core`: si otro módulo de la familia ya lo envuelve, coordínalo. Anota ahí cada método que envuelvas.
 15. **Textos humanos (política de IA de Foundry):** nunca escribas valores de `lang/*.json`, texto de chat, la descripción de `module.json` ni texto del listado. Agrega la clave con el valor `TODO-HUMANO: <qué debe decir>` (en `en.json` y en `es.json`, para que la paridad de la regla 9 se mantenga) y BaronHVC la llena. Sí puedes traducir al otro idioma un texto que él escribió, siempre que él lo revise. La revisión `[n]` de check-module avisa en cada push de todo valor de `lang/*.json`, `title` o `description` de `module.json` que empiece con `TODO-HUMANO:`, y el release de la etiqueta (`--release`) falla; la CI la corre solo cuando `baron-core.lock.json` apunta a un núcleo que la trae (posterior a v1.1.1).
+16. **Comprensión del código (política de IA de Foundry, §4.4):** BaronHVC debe poder entender, explicar, modificar y mantener todo el código que publica. Mantén al día:
+    - `docs/ARCHITECTURE.md`: mapa de archivos, flujos con `archivo:línea` y quién los ejecuta, datos persistidos y puntos delicados. Actualiza las referencias en el mismo commit que mueve el código.
+    - `docs/PREGUNTAS.md`: 15 a 30 preguntas técnicas con dónde mirar, **sin respuestas**.
+    `docs/comprension/` es de BaronHVC: sus respuestas y notas, escritas y commiteadas por él. Ahí puedes señalar errores, pero nunca reescribir. Antes de cada merge a `main`, resúmele el diff (qué cambia, por qué, qué podría romperse). Ofrece recorridos guiados de un flujo a la vez.
 
 ## Freemium (base gratuita + complemento de pago)
 
