@@ -48,7 +48,7 @@ Para módulos de pago, bases de un freemium y cualquier módulo que prefiera la 
 - La ORC **nunca** licencia marcas (la Community Use Policy sí permite usarlas, solo en proyectos gratuitos). "PF2e" o "Pathfinder" en el título o el id de un módulo bajo ORC, sea de pago o gratuito, es una **pregunta legal abierta**: decídelo antes de publicar (o pregunta a Paizo por escrito); el id no se puede cambiar después.
 - La ORC cubre mecánicas del juego, no código: la licencia del código del módulo la decides tú.
 - Lo que el módulo lee en tiempo de ejecución del sistema PF2e instalado no se redistribuye; no copies texto, arte ni íconos de los compendios al módulo.
-- Rellena todo lo que está entre corchetes `[ ]` antes de publicar. Un campo que espera tu firma (una atribución por cotejar con el libro, una decisión legal) lleva una línea con `PENDIENTE:` y qué falta. Con un baron-core posterior a v1.2.0, `check-module` avisa de los dos en cada push y, con `--release` (el del release), falla.
+- Rellena todo lo que está entre corchetes `[ ]` antes de publicar. Un campo que espera tu firma (una atribución por cotejar con el libro, una decisión legal) lleva una línea con `PENDIENTE:` y qué falta. `check-module` avisa en cada push de los corchetes sin llenar y, con un baron-core posterior a v1.2.0, también de las líneas `PENDIENTE:`; con ese núcleo, `--release` (el del release) falla con los dos.
 <!-- baron:template-only:end -->
 
 ### ORC Notice
