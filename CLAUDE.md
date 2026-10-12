@@ -19,7 +19,7 @@ Módulo de Foundry VTT (v13–v14) para el sistema PF2e, de la familia BaronHVC.
 4. **baron-core no registra nada.** Los hooks, ajustes, helpers de Handlebars y sockets se registran solo en los archivos de entrada del módulo (`scripts/main.js` y los que estén en `esmodules`).
 5. **Los handlers que escriben documentos desde un hook que reciben todos los clientes empiezan con `if (!isSoleExecutor()) return;`**: `createX`/`updateX`/`deleteX`, turnos de combate, mensajes de chat. Si no, cada cliente conectado repite la escritura. **Nunca** lo pongas en `preCreateX`/`preUpdateX`/`preDeleteX` ni en handlers de la interfaz: corren solo en el cliente que inició la acción, y el guardia los apagaría en silencio para los jugadores y para cualquier GM que no sea el activo.
 6. **Nunca `getFlag`/`setFlag`/`unsetFlag` con el scope de otro módulo**: lanzan un error si ese módulo está inactivo. Para leer datos ajenos: `doc.flags?.[scope]?.[key]`.
-7. **Corre `check-module` antes de cada etiqueta**: `node ../pf2e-baron-core/tools/check-module.mjs . --core-repo ../pf2e-baron-core --online --release` (lo mismo que la CI de la etiqueta: un `TODO-HUMANO:` pendiente falla aquí y no solo avisa).
+7. **Corre `check-module` antes de cada etiqueta**: `node ../pf2e-baron-core/tools/check-module.mjs . --core-repo ../pf2e-baron-core --online --release` (lo mismo que la CI de la etiqueta: un `TODO-HUMANO:` pendiente falla aquí y no solo avisa; con un núcleo posterior a v1.2.0, también un corchete sin llenar o una línea `PENDIENTE:` en `NOTICE.md`, ver *Avisos legales*).
 8. **Los arreglos de comportamiento salen en su propio release**, nunca mezclados con funciones nuevas, y el CHANGELOG anota la versión de baron-core de cada release.
 9. **Idioma:** toda clave lleva el prefijo `__MODULE_ID__.` (es el id del módulo); `lang/en.json` y `lang/es.json` tienen exactamente las mismas claves. Usa claves literales (`i18n("Open")`, `"__MODULE_ID__.SettingGmOnly"`) para que check-module las verifique; las frases con variables usan `game.i18n.format` con `{marcadores}`. Los textos de PF2e se leen en vivo de `CONFIG.PF2E`, no se copian a los archivos de idioma.
 10. **CSS acotado:** cada regla vive bajo `.__PREFIX__-app` o una clase `__PREFIX__-*` explícita. Nunca reestilices selectores globales de Foundry o PF2e ni declares variables en `:root`; los colores salen de las variables de tema de Foundry.
@@ -59,8 +59,17 @@ Requisitos del autor: una sola vez, el Premium Content Agreement de Foundry; por
 5. Etiqueta: la CI (baron-core posterior a v1.0.0) arma el ZIP protegido y lo publica como release del repo privado; nunca el canal `dev`.
 6. A mano: sube el ZIP en https://foundryvtt.com/creators/upload (la primera versión espera aprobación), elige los niveles de Patreon en la página del paquete y prueba la instalación desde una cuenta de mecenas (tiene que instalar también la base).
 
+## Avisos legales (`NOTICE.md`)
+
+Nada de esto es asesoría legal: la licencia de Paizo, las marcas en el id o el título y las atribuciones son decisiones de BaronHVC.
+
+- `NOTICE.md` viaja en el ZIP de cada release (baron-core v1.1.1 o posterior): solo la línea de título, los avisos de la licencia de `"paizo"` y sus campos. Nunca notas de trabajo ni instrucciones: esas van aquí o en el README (*Licencia y avisos legales*).
+- Los avisos se copian exactos, en inglés, de la página de Paizo citada como **Fuente**; no los redactes, resumas ni traduzcas. Antes de cada publicación hay que volver a abrir esa página y compararlos.
+- Con `"paizo": "orc"`, los corchetes de la plantilla (`[Title of Work]`, `[Copyright Notice]`, `[Author Credit Information]`, el Reserved Material, `[ninguno]`) se llenan antes de publicar: un renglón por cada obra ORC que use el módulo, según el *Sample Notice* de la sección III, con título, copyright y créditos tal como vienen en el aviso ORC del libro. La ORC nunca licencia marcas de Paizo.
+- Un campo que espera la firma de BaronHVC (una atribución sin cotejar con el libro, una decisión legal) lleva una línea `PENDIENTE: <qué falta>`; solo él la quita. La revisión `[l]` de check-module avisa en cada push de los corchetes sin llenar y, con un núcleo posterior a v1.2.0, de las líneas `PENDIENTE:`; con `--release` (regla 7), los dos fallan.
+- No copies texto, arte ni íconos de los compendios de PF2e al módulo.
+
 ## Estilo
 
 - Comentarios de código en inglés, cortos, explicando el **porqué**.
-- README, CHANGELOG, NOTICE y comentarios de los workflows en español.
-- Avisos legales: `NOTICE.md`. No copies texto, arte ni íconos de los compendios de PF2e al módulo.
+- README, CHANGELOG, NOTICE y comentarios de los workflows en español (los avisos de Paizo, en inglés, como los publica Paizo).

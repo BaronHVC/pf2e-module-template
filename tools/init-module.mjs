@@ -426,19 +426,27 @@ if (opts.requires !== undefined) {
   }
   lines.push("");
 }
+// NOTICE.md ships in every release zip, so it keeps only the notices: the
+// review-before-publishing guidance lives here and in the README instead.
+lines.push(
+  `NOTICE.md (${paizo === "cup" ? "Community Use Policy" : "ORC License"}; viaja en el ZIP de cada release):`,
+  "  - Antes de cada publicacion, compara sus avisos con la pagina de Paizo citada como Fuente. No es asesoria legal:",
+  "    ver \"Licencia y avisos legales\" en el README."
+);
 if (paizo === "orc") {
   lines.push(
-    "Paizo orc:",
-    "  - Rellena los corchetes de NOTICE.md (obras ORC usadas, Reserved Material) antes de publicar."
+    "  - Rellena los corchetes de NOTICE.md (obras ORC usadas, aviso de copyright, Reserved Material) antes de publicar.",
+    "    Un campo que espera tu firma lleva una linea PENDIENTE:. Con un baron-core posterior a v1.2.0,",
+    "    check-module --release falla mientras quede un corchete o un PENDIENTE:."
   );
   // The CUP lets a free project use Paizo's trademarks; the ORC never licenses
   // them, free or paid, and the id cannot be renamed later. Same list as
   // PAIZO_TRADEMARK_RE in pf2e-baron-core's check-module: keep them in sync.
   if (/pf2|sf2e|pathfinder|starfinder|golarion|paizo/i.test(`${id} ${opts.title}`)) {
-    lines.push("  - El id o el titulo nombran a Paizo o uno de sus juegos (PF2e, Pathfinder, Starfinder, Golarion): la ORC nunca licencia marcas de Paizo, es una pregunta legal abierta y el id es para siempre (ver NOTICE.md).");
+    lines.push("  - El id o el titulo nombran a Paizo o uno de sus juegos (PF2e, Pathfinder, Starfinder, Golarion): la ORC nunca licencia marcas de Paizo, es una pregunta legal abierta y el id es para siempre (ver \"Licencia y avisos legales\" en el README).");
   }
-  lines.push("");
 }
+lines.push("");
 // Same rule as REGISTRY.md: a public module registers before any code is
 // written, a protected one only when it is published (the core repo is
 // public).
