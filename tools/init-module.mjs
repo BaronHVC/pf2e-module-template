@@ -280,6 +280,32 @@ function stripBom(text) {
   return text.charCodeAt(0) === 0xfeff ? text.slice(1) : text;
 }
 
+// The newest baron-core whose check-module ignores baron.json "humanText".
+const LAST_CORE_WITHOUT_SIGNATURES = "1.4.0";
+
+// The core version baron-core.lock.json pins ("1.4.0"), or null if unreadable.
+function coreLockVersion() {
+  try {
+    const lock = JSON.parse(stripBom(fs.readFileSync(path.join(ROOT, "baron-core.lock.json"), "utf8")));
+    return typeof lock.version === "string" ? lock.version : null;
+  } catch {
+    return null;
+  }
+}
+
+// Whether semver `a` comes after the release `b`. A prerelease of a later
+// version (1.5.0-rc.1) counts as after; one of `b` itself (1.4.0-rc.1) does not.
+function isAfter(a, b) {
+  const parse = (v) => /^(\d+)\.(\d+)\.(\d+)(-.+)?$/.exec(v);
+  const pa = parse(a);
+  const pb = parse(b);
+  if (!pa || !pb) return false;
+  for (let i = 1; i <= 3; i++) {
+    if (Number(pa[i]) !== Number(pb[i])) return Number(pa[i]) > Number(pb[i]);
+  }
+  return false;
+}
+
 const opts = parseArgs(process.argv.slice(2));
 if (opts.help) {
   console.log(USAGE);
@@ -456,11 +482,22 @@ lines.push("");
 lines.push(
   "Textos (baron.json \"humanText\": \"signed\"; politica de IA de Foundry):",
   "  - Los valores de lang/*.json y el titulo y la descripcion de module.json los escribes tu, desde cero.",
-  "  - Antes de cada etiqueta, firmalos en tu terminal (PowerShell o Windows Terminal; en Git Bash, con winpty delante):",
+  "  - Antes de cada etiqueta, firmalos en tu terminal (PowerShell, Windows Terminal o Git Bash, sin tuberias ni redirecciones):",
   "      node ../pf2e-baron-core/tools/sign-text.mjs . --sign",
-  "    Con un baron-core posterior a v1.4.0, check-module --release falla mientras quede un texto sin firmar.",
-  ""
+  "    Con un baron-core posterior a v1.4.0, check-module --release falla mientras quede un texto sin firmar."
 );
+// The CI runs the check-module of the core the lock pins. Up to v1.4.0 it
+// ignores "humanText", so a tag would publish an unsigned AI working text.
+const lockVersion = coreLockVersion();
+if (!lockVersion || !isAfter(lockVersion, LAST_CORE_WITHOUT_SIGNATURES)) {
+  lines.push(
+    `  - OJO: baron-core.lock.json fija ${lockVersion ? `v${lockVersion}` : "un baron-core que no pude leer"}, y la CI de ese nucleo no revisa las firmas:`,
+    `    una etiqueta publicaria un texto sin firmar. Hasta resincronizar con un baron-core posterior a v${LAST_CORE_WITHOUT_SIGNATURES}`,
+    "    (sync-core), un texto nuevo lleva el marcador TODO-HUMANO: (regla 15 del CLAUDE.md), y antes de etiquetar",
+    "    reescribes tu los de docs/textos-borrador.md y corres check-module --release desde tu clon del nucleo."
+  );
+}
+lines.push("");
 // Same rule as REGISTRY.md: a public module registers before any code is
 // written, a protected one only when it is published (the core repo is
 // public).

@@ -1,6 +1,6 @@
 # Textos de trabajo escritos por IA
 
-Regla 15 del [CLAUDE.md](../CLAUDE.md): durante el desarrollo, con `"humanText": "signed"` en `baron.json`, `lang/*.json` puede llevar textos de trabajo escritos por IA. Cada uno se anota aquí, con su intención, en el mismo commit que lo agrega o lo cambia. Antes de etiquetar, BaronHVC reescribe cada uno desde cero (retocar el texto de la IA no cumple la política de IA de Foundry, §4.1) y lo firma en su terminal con `node ../pf2e-baron-core/tools/sign-text.mjs . --sign`. Una vez firmado, su fila se borra.
+Regla 15 del [CLAUDE.md](../CLAUDE.md): durante el desarrollo, con `"humanText": "signed"` en `baron.json` y un `baron-core.lock.json` que fija un núcleo posterior a v1.4.0 (el primero cuya CI revisa las firmas), `lang/*.json` puede llevar textos de trabajo escritos por IA; sin las dos cosas, un texto nuevo lleva el marcador `TODO-HUMANO:`. Cada uno se anota aquí, con su intención, en el mismo commit que lo agrega o lo cambia. Antes de etiquetar, BaronHVC reescribe cada uno desde cero (retocar el texto de la IA no cumple la política de IA de Foundry, §4.1) y lo firma en su terminal con `node ../pf2e-baron-core/tools/sign-text.mjs . --sign`. Una vez firmado, su fila se borra. Mientras el lock fije v1.4.0 o uno anterior, la CI no bloquea los de esta tabla: reescríbelos y corre `check-module ... --release` desde tu clon del núcleo antes de etiquetar.
 
 | archivo | clave | intención (qué debe comunicar y dónde aparece) |
 |---------|-------|------------------------------------------------|
