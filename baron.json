@@ -5,6 +5,7 @@
   "devChannel": true,
   "i18nPrefix": "__MODULE_ID__",
   "langParity": "error",
+  "humanText": "signed",
   "persisted": [
     "__MODULE_ID__",
     "gmOnly"

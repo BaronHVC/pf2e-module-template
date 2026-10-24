@@ -349,6 +349,10 @@ for (const rel of listFiles(ROOT)) {
     // A paid module never publishes the dev channel (module-release ignores
     // the flag and says so on every release), so it should not claim one.
     if (opts.mode === "protected") config.devChannel = false;
+    // Every text of the module needs its author's signature before a release:
+    // Foundry's AI policy wants UI and listing text written by a person
+    // (check-module rule [n] and tools/sign-text.mjs in pf2e-baron-core).
+    config.humanText = "signed";
     text = JSON.stringify(config, null, 2) + "\n";
   }
   // Rewritten only when asked, so a module without --requires keeps the
@@ -447,6 +451,16 @@ if (paizo === "orc") {
   }
 }
 lines.push("");
+// The lock that keeps an AI working text out of a release: the author writes
+// each text himself and signs it at his own terminal, never an agent.
+lines.push(
+  "Textos (baron.json \"humanText\": \"signed\"; politica de IA de Foundry):",
+  "  - Los valores de lang/*.json y el titulo y la descripcion de module.json los escribes tu, desde cero.",
+  "  - Antes de cada etiqueta, firmalos en tu terminal (PowerShell o Windows Terminal; en Git Bash, con winpty delante):",
+  "      node ../pf2e-baron-core/tools/sign-text.mjs . --sign",
+  "    Con un baron-core posterior a v1.4.0, check-module --release falla mientras quede un texto sin firmar.",
+  ""
+);
 // Same rule as REGISTRY.md: a public module registers before any code is
 // written, a protected one only when it is published (the core repo is
 // public).
