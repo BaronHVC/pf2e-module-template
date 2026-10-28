@@ -23,5 +23,8 @@ node_modules/
 agents/
 
 # Hoja de textos de pf2e-baron-core/tools/text-sheet.mjs: borradores de las
-# personas que escriben los textos; pasan a lang/*.json con "text-sheet import"
-textos-hoja.csv
+# personas que escriben los textos; pasan a lang/*.json con "text-sheet import".
+# Todas: la de cada autor (--out textos-hoja-<nombre>.csv) y el .xlsx donde se
+# trabaja; y el archivo de bloqueo que Excel deja junto a lo que tiene abierto
+textos-hoja*
+~$*
