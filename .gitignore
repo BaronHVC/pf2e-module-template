@@ -21,3 +21,7 @@ node_modules/
 
 # Informes de counselors (revisiones de agentes, no son parte del modulo)
 agents/
+
+# Hoja de textos de pf2e-baron-core/tools/text-sheet.mjs: borradores de las
+# personas que escriben los textos; pasan a lang/*.json con "text-sheet import"
+textos-hoja.csv
