@@ -486,7 +486,9 @@ lines.push(
   "  - Antes de cada etiqueta, BaronHVC los firma en su terminal (PowerShell, Windows Terminal o Git Bash, sin tuberias ni redirecciones),",
   "    nombrando al autor real de cada uno (con un baron-core posterior a v1.6.0):",
   "      node ../pf2e-baron-core/tools/sign-text.mjs . --sign --sheet textos-hoja.csv",
-  "    (la pregunta nombra al author de cada fila), o --sign --author <nombre>, tambien --author BaronHVC para los suyos.",
+  "    (la pregunta nombra al author de cada fila; la hoja de cada persona, como textos-hoja-IAR18.csv, igual),",
+  "    o --sign --author <nombre>, tambien --author BaronHVC para los suyos. Cada autor queda atado al sha256 de su firma",
+  "    en human-text-authors.json: si el texto cambia o se firma otra vez sin autor, ese autor deja de contar.",
   "    Con un baron-core posterior a v1.4.0, check-module --release falla mientras quede un texto sin firmar."
 );
 // The CI runs the check-module of the core the lock pins. Up to v1.4.0 it
