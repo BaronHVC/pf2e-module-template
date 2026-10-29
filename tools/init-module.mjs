@@ -488,7 +488,8 @@ lines.push(
   "      node ../pf2e-baron-core/tools/sign-text.mjs . --sign --sheet textos-hoja.csv",
   "    (la pregunta nombra al author de cada fila; la hoja de cada persona, como textos-hoja-IAR18.csv, igual),",
   "    o --sign --author <nombre>, tambien --author BaronHVC para los suyos. Cada autor queda atado al sha256 de su firma",
-  "    en human-text-authors.json: si el texto cambia o se firma otra vez sin autor, ese autor deja de contar.",
+  "    en human-text-authors.json y cuenta mientras se firme ese mismo valor: un texto que cambia no lo hereda, y un",
+  "    baron-core anterior que vuelve a firmar justo ese valor lo hace contar otra vez (firma con uno posterior a v1.6.0).",
   "    Con un baron-core posterior a v1.4.0, check-module --release falla mientras quede un texto sin firmar."
 );
 // The CI runs the check-module of the core the lock pins. Up to v1.4.0 it
