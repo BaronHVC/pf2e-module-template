@@ -23,4 +23,4 @@ Un `|` dentro de una celda se escribe `\|`. Un texto de `lang/*.json` sin fila s
 | `__MODULE_ID__.SettingGmOnly` | nombre del ajuste de mundo `gmOnly` en *Configure Settings* | viene de la plantilla: que el módulo lo pueda usar solo el GM | — | |
 | `__MODULE_ID__.SettingGmOnlyHint` | ayuda bajo ese ajuste | viene de la plantilla: desactivado, los jugadores dueños de un objeto también pueden usar el módulo en él | — | |
 
-Las filas de `module.json:title`, `module.json:description` y `__MODULE_ID__.Title` llevan lo que se escribió al correr `init-module`: si lo escribió una persona, BaronHVC lo firma tal cual con `sign-text --sign` (con `--author IAR18` si lo escribió IAR18) y su fila se borra; si no, se escribe en la hoja como los demás.
+Las filas de `module.json:title`, `module.json:description` y `__MODULE_ID__.Title` llevan lo que se escribió al correr `init-module`: si lo escribió una persona, BaronHVC lo firma tal cual con `sign-text --sign --author <quien lo escribió>` (`--author BaronHVC` o `--author IAR18`) y su fila se borra; si no, se escribe en la hoja como los demás.

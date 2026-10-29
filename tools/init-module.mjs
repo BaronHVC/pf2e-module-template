@@ -477,13 +477,16 @@ if (paizo === "orc") {
   }
 }
 lines.push("");
-// The lock that keeps an AI working text out of a release: the author writes
-// each text himself and signs it at his own terminal, never an agent.
+// The lock that keeps an AI working text out of a release: BaronHVC or IAR18
+// write each text from scratch, and BaronHVC, who attests them to Foundry,
+// signs each one at his terminal naming its real author; never an agent.
 lines.push(
   "Textos (baron.json \"humanText\": \"signed\"; politica de IA de Foundry):",
-  "  - Los valores de lang/*.json y el titulo y la descripcion de module.json los escribes tu, desde cero.",
-  "  - Antes de cada etiqueta, firmalos en tu terminal (PowerShell, Windows Terminal o Git Bash, sin tuberias ni redirecciones):",
-  "      node ../pf2e-baron-core/tools/sign-text.mjs . --sign",
+  "  - Los valores de lang/*.json y el titulo y la descripcion de module.json los escriben desde cero BaronHVC o IAR18 (en la hoja de text-sheet).",
+  "  - Antes de cada etiqueta, BaronHVC los firma en su terminal (PowerShell, Windows Terminal o Git Bash, sin tuberias ni redirecciones),",
+  "    nombrando al autor real de cada uno (con un baron-core posterior a v1.6.0):",
+  "      node ../pf2e-baron-core/tools/sign-text.mjs . --sign --sheet textos-hoja.csv",
+  "    (la pregunta nombra al author de cada fila), o --sign --author <nombre>, tambien --author BaronHVC para los suyos.",
   "    Con un baron-core posterior a v1.4.0, check-module --release falla mientras quede un texto sin firmar."
 );
 // The CI runs the check-module of the core the lock pins. Up to v1.4.0 it
@@ -494,7 +497,7 @@ if (!lockVersion || !isAfter(lockVersion, LAST_CORE_WITHOUT_SIGNATURES)) {
     `  - OJO: baron-core.lock.json fija ${lockVersion ? `v${lockVersion}` : "un baron-core que no pude leer"}, y la CI de ese nucleo no revisa las firmas:`,
     `    una etiqueta publicaria un texto sin firmar. Hasta resincronizar con un baron-core posterior a v${LAST_CORE_WITHOUT_SIGNATURES}`,
     "    (sync-core), un texto nuevo lleva el marcador TODO-HUMANO: (regla 15 del CLAUDE.md), y antes de etiquetar",
-    "    reescribes tu los de docs/textos-borrador.md y corres check-module --release desde tu clon del nucleo."
+    "    BaronHVC o IAR18 reescriben los de docs/textos-borrador.md y BaronHVC corre check-module --release desde su clon del nucleo."
   );
 }
 lines.push("");
